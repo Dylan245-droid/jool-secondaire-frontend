@@ -8,15 +8,50 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+// Netflix-style session rotation : sur 401 (hors login/2FA/refresh), un seul
+// POST /auth/refresh est déclenché (single-flight), puis la requête est rejouée.
+let refreshPromise: Promise<boolean> | null = null;
+
+const SKIP_REFRESH = ["/auth/refresh", "/auth/login", "/auth/verify-2fa"];
+
+async function tryRefresh(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((r) => r.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+async function rawFetch(path: string, options: RequestInit): Promise<Response> {
+  return fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
     },
-  })
+  });
+}
+
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  let res = await rawFetch(path, options);
+
+  if (res.status === 401 && !SKIP_REFRESH.includes(path)) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      res = await rawFetch(path, options);
+    }
+    // Si le refresh échoue, l'erreur 401 remonte ; le middleware redirigera
+    // vers /login dès que le cookie de refresh aura expiré côté navigateur.
+  }
 
   if (!res.ok) {
     let detail = res.statusText
