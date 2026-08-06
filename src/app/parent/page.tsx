@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
-import { AlertCircle, Bell, BookOpen, FileText, MessageSquare, UserX, X } from "lucide-react";
+import { AlertCircle, Bell, BookOpen, FileText, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8003/api/v2";
 
@@ -83,6 +83,23 @@ interface Alerte {
   created_at: string;
 }
 
+interface PortabiliteEnfant {
+  inscription_id: number;
+  consentement: boolean;
+  transfere: boolean;
+  qr_data_url?: string;
+  export_url?: string;
+}
+
+interface FinancesEnfant {
+  inscription_id: number;
+  total_du: number;
+  total_paye: number;
+  reste: number;
+  frais: { label: string; montant: number; type: string }[];
+  paiements: { id: number; montant: number; mode: string; reference: string; date: string; statut: string; frais: string }[];
+}
+
 const MENTIONS: Record<string, string> = {
   tb: "Très Bien",
   b: "Bien",
@@ -94,7 +111,7 @@ const MENTIONS: Record<string, string> = {
 export default function ParentPage() {
   const queryClient = useQueryClient();
   const [selectedEnfant, setSelectedEnfant] = useState<number | null>(null);
-  const [tab, setTab] = useState<"bulletins" | "viescolaire" | "cahier">("bulletins");
+  const [tab, setTab] = useState<"bulletins" | "viescolaire" | "cahier" | "portabilite" | "finances">("bulletins");
   const [showAlertes, setShowAlertes] = useState(false);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -129,6 +146,23 @@ export default function ParentPage() {
     queryKey: ["parent-cahier", selectedEnfant],
     queryFn: () => api.get<CahierTextesEnfant>(`/secondaire/parent/enfants/${selectedEnfant}/cahier-textes`),
     enabled: selectedEnfant !== null,
+  });
+  const { data: portabilite } = useQuery({
+    queryKey: ["parent-portabilite", selectedEnfant],
+    queryFn: () => api.get<PortabiliteEnfant>(`/secondaire/parent/enfants/${selectedEnfant}/portabilite`),
+    enabled: selectedEnfant !== null,
+  });
+  const { data: finances } = useQuery({
+    queryKey: ["parent-finances", selectedEnfant],
+    queryFn: () => api.get<FinancesEnfant>(`/secondaire/parent/enfants/${selectedEnfant}/finances`),
+    enabled: selectedEnfant !== null,
+  });
+
+  const accorderConsentement = useMutation({
+    mutationFn: (consentement: boolean) =>
+      api.patch(`/secondaire/parent/enfants/${selectedEnfant}/consentement`, { consentement }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parent-portabilite", selectedEnfant] }),
+    onError: (err) => alert(err instanceof ApiError ? err.message : "Erreur de consentement"),
   });
 
   const envoyerMessage = useMutation({
@@ -267,6 +301,8 @@ export default function ParentPage() {
                 { key: "bulletins", label: "Bulletins" },
                 { key: "viescolaire", label: "Vie scolaire" },
                 { key: "cahier", label: "Cahier de textes" },
+                { key: "portabilite", label: "Portabilité" },
+                { key: "finances", label: "Finances" },
               ].map((t) => (
                 <button
                   key={t.key}
@@ -443,6 +479,136 @@ export default function ParentPage() {
                   ))}
                 </ul>
               </section>
+            )}
+
+            {tab === "portabilite" && (
+              <section className="bg-white rounded-lg border border-gray-200 p-5">
+                <h3 className="font-semibold mb-1 flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-purple-600" /> Portabilité scolaire
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Autorisez le transfert du dossier scolaire de votre enfant (parcours, bulletins,
+                  examens, vie scolaire) vers un autre établissement du réseau, via un QR code signé.
+                </p>
+                <div className="rounded-lg border border-gray-200 p-4 max-w-xl">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm">
+                      <span className="font-medium">Consentement actuel :</span>{" "}
+                      {portabilite?.consentement ? (
+                        <span className="text-green-700 font-medium">accordé</span>
+                      ) : (
+                        <span className="text-red-600 font-medium">non accordé</span>
+                      )}
+                    </p>
+                    <button
+                      onClick={() => accorderConsentement.mutate(!portabilite?.consentement)}
+                      disabled={accorderConsentement.isPending}
+                      className={`rounded-md px-4 py-2 text-sm font-medium border ${
+                        portabilite?.consentement
+                          ? "border-red-300 text-red-600 hover:bg-red-50"
+                          : "bg-primary text-white border-primary hover:bg-primary-dark"
+                      } disabled:opacity-50`}
+                    >
+                      {portabilite?.consentement
+                        ? "Retirer le consentement"
+                        : accorderConsentement.isPending
+                        ? "Enregistrement…"
+                        : "Accorder le consentement"}
+                    </button>
+                  </div>
+                  {portabilite?.transfere && (
+                    <p className="text-xs rounded-md bg-secondary px-3 py-2 text-primary-dark mt-3">
+                      Cet enfant a été transféré depuis un autre établissement : son historique est
+                      consultable par l&apos;administration.
+                    </p>
+                  )}
+                  {portabilite?.consentement && portabilite.qr_data_url && (
+                    <div className="mt-4">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        QR code à présenter lors de l&apos;inscription dans le nouvel établissement :
+                      </p>
+                      <img
+                        src={portabilite.qr_data_url}
+                        alt="QR portabilité"
+                        className="w-40 h-40 border border-gray-200 rounded-lg"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2 break-all">
+                        <code className="text-[10px]">{portabilite.export_url}</code>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {tab === "finances" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-amber-600" /> Situation financière
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="rounded-lg bg-gray-50 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Dû</p>
+                      <p className="text-lg font-bold">{finances?.total_du.toLocaleString("fr-FR")} F</p>
+                    </div>
+                    <div className="rounded-lg bg-green-50 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Payé</p>
+                      <p className="text-lg font-bold text-green-700">
+                        {finances?.total_paye.toLocaleString("fr-FR")} F
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-red-50 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Reste</p>
+                      <p className="text-lg font-bold text-red-600">
+                        {finances?.reste.toLocaleString("fr-FR")} F
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium mb-2">Frais de l&apos;année</p>
+                  <ul className="divide-y divide-gray-100">
+                    {finances?.frais.map((f, idx) => (
+                      <li key={idx} className="flex items-center justify-between py-2 text-sm">
+                        <span>{f.label}</span>
+                        <span className="font-medium">{f.montant.toLocaleString("fr-FR")} F</span>
+                      </li>
+                    ))}
+                    {finances?.frais.length === 0 && (
+                      <li className="text-sm text-muted-foreground py-2">Aucun frais défini.</li>
+                    )}
+                  </ul>
+                </section>
+
+                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                  <h3 className="font-semibold mb-4">Paiements enregistrés</h3>
+                  <ul className="divide-y divide-gray-100">
+                    {finances?.paiements.map((p) => (
+                      <li key={p.id} className="py-2 text-sm">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium">{p.montant.toLocaleString("fr-FR")} F</p>
+                          <span
+                            className={`text-xs rounded-full px-2 py-0.5 ${
+                              p.statut === "valide"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {p.statut}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {p.frais} — {p.mode}
+                          {p.reference && ` (${p.reference})`} —{" "}
+                          {new Date(p.date).toLocaleDateString("fr-FR")}
+                        </p>
+                      </li>
+                    ))}
+                    {finances?.paiements.length === 0 && (
+                      <li className="text-sm text-muted-foreground py-2">Aucun paiement enregistré.</li>
+                    )}
+                  </ul>
+                </section>
+              </div>
             )}
 
             <section className="bg-white rounded-lg border border-gray-200 p-5">

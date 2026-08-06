@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { Users, Upload, Plus } from "lucide-react";
+import { Copy, Download, Upload, Users, Plus, QrCode, History } from "lucide-react";
 
 interface Niveau {
   id: number;
@@ -36,11 +36,31 @@ interface Inscription {
   statut: string;
 }
 
+interface PortabiliteInfos {
+  inscription_id: number;
+  consentement: boolean;
+  transfere: boolean;
+  qr_data_url?: string;
+  export_url?: string;
+}
+
+interface ExportPortabilite {
+  version: string;
+  exported_at: string;
+  eleve: { matricule: string; nom: string; prenom: string };
+  parcours: { annee: string; classe: string; niveau: string; etablissement: string }[];
+  bulletins: { trimestre: string; annee: string; moyenne_generale: number; mention: string }[];
+  signature: string;
+}
+
 export default function ClassesPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);
   const [importResult, setImportResult] = useState<string>("");
+  // Portabilité
+  const [selectedInscription, setSelectedInscription] = useState<number | null>(null);
+  const [portMsg, setPortMsg] = useState("");
 
   const [form, setForm] = useState({ label: "", niveau_id: "", school_year_id: "", effectif_max: "35" });
   const [error, setError] = useState("");
@@ -52,6 +72,22 @@ export default function ClassesPage() {
     queryKey: ["inscriptions", selectedClasse],
     queryFn: () => api.get<Inscription[]>(`/secondaire/inscriptions?classe_id=${selectedClasse}`),
     enabled: selectedClasse !== null,
+  });
+  const selectedMatricule = inscriptions?.find((i) => i.id === selectedInscription)?.matricule;
+  const { data: portabilite } = useQuery({
+    queryKey: ["portabilite", selectedMatricule],
+    queryFn: () => api.get<PortabiliteInfos>(`/portability/student/${selectedMatricule}/qr`),
+    enabled: !!selectedMatricule,
+  });
+  const { data: exportData } = useQuery({
+    queryKey: ["portabilite-export", selectedMatricule],
+    queryFn: () => api.get<ExportPortabilite>(`/portability/student/${selectedMatricule}/export`),
+    enabled: !!selectedMatricule && !!portabilite?.consentement,
+  });
+  const { data: historique } = useQuery({
+    queryKey: ["portabilite-history", selectedMatricule],
+    queryFn: () => api.get<ExportPortabilite | null>(`/portability/student/${selectedMatricule}/history`),
+    enabled: !!selectedMatricule,
   });
 
   const createClasse = useMutation({
@@ -91,6 +127,45 @@ export default function ClassesPage() {
     } catch (err) {
       setImportResult(err instanceof Error ? `Erreur : ${err.message}` : "Erreur d'import");
     }
+  }
+
+  async function importPortabilite(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPortMsg("");
+    const file = (e.currentTarget.elements.namedItem("json") as HTMLInputElement).files?.[0];
+    if (!file || !selectedClasse) return;
+    try {
+      const exportJson = JSON.parse(await file.text());
+      const res = await api.post<{ matricule: string; classe_id: number; historique: boolean }>(
+        "/portability/import",
+        { export: exportJson, classe_id: selectedClasse }
+      );
+      setPortMsg(
+        `Élève ${res.matricule} importé en classe ${res.classe_id}` +
+          (res.historique ? " (historique complet restauré en lecture)." : ".")
+      );
+      queryClient.invalidateQueries({ queryKey: ["inscriptions", selectedClasse] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+    } catch (err) {
+      setPortMsg(err instanceof Error ? `Erreur : ${err.message}` : "Erreur d'import");
+    }
+  }
+
+  function copierExport() {
+    if (!exportData) return;
+    navigator.clipboard.writeText(JSON.stringify(exportData));
+    setPortMsg("Export copié dans le presse-papier (à fournir à l'établissement d'accueil).");
+  }
+
+  function telechargerExport() {
+    if (!exportData) return;
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `portabilite_${selectedMatricule}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -230,12 +305,21 @@ export default function ClassesPage() {
                 )}
                 <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                   {inscriptions?.map((i) => (
-                    <li key={i.id} className="flex items-center justify-between py-2 text-sm">
-                      <span>
-                        {i.etudiant_nom} {i.etudiant_prenom}
-                        {i.matricule && <span className="text-xs text-muted-foreground ml-2">({i.matricule})</span>}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{i.statut}</span>
+                    <li key={i.id}>
+                      <button
+                        onClick={() =>
+                          setSelectedInscription(i.id === selectedInscription ? null : i.id)
+                        }
+                        className={`w-full flex items-center justify-between py-2 text-sm text-left hover:bg-gray-50 px-2 rounded ${
+                          i.id === selectedInscription ? "bg-secondary" : ""
+                        }`}
+                      >
+                        <span>
+                          {i.etudiant_nom} {i.etudiant_prenom}
+                          {i.matricule && <span className="text-xs text-muted-foreground ml-2">({i.matricule})</span>}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{i.statut}</span>
+                      </button>
                     </li>
                   ))}
                   {inscriptions?.length === 0 && (
@@ -251,6 +335,137 @@ export default function ClassesPage() {
             )}
           </section>
         </div>
+
+        {selectedInscription && (
+          <section className="mt-6 bg-white rounded-lg border border-gray-200 p-5">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-purple-600" /> Portabilité —
+              {inscriptions?.find((i) => i.id === selectedInscription)?.etudiant_nom}{" "}
+              {inscriptions?.find((i) => i.id === selectedInscription)?.etudiant_prenom} (
+              {selectedMatricule})
+            </h3>
+            {portMsg && (
+              <p className="text-sm mb-3 rounded-md bg-secondary px-3 py-2 text-primary-dark max-w-xl">{portMsg}</p>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <p className="text-sm">
+                  <span className="font-medium">Consentement parent :</span>{" "}
+                  {portabilite?.consentement ? (
+                    <span className="text-green-700">accordé</span>
+                  ) : (
+                    <span className="text-red-600">non accordé — export et QR indisponibles</span>
+                  )}
+                </p>
+                {portabilite?.consentement && portabilite.qr_data_url && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">QR portabilité (scannable par l&apos;établissement d&apos;accueil) :</p>
+                    <img
+                      src={portabilite.qr_data_url}
+                      alt={`QR portabilité ${selectedMatricule}`}
+                      className="w-40 h-40 border border-gray-200 rounded-lg"
+                    />
+                    {portabilite.export_url && (
+                      <p className="text-xs text-muted-foreground mt-2 break-all">
+                        URL publique signée :{" "}
+                        <code className="text-[10px]">{portabilite.export_url.slice(0, 80)}…</code>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-2">Export JSON signé (historique complet)</p>
+                {portabilite?.consentement ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={telechargerExport}
+                      className="flex items-center gap-1 rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Télécharger
+                    </button>
+                    <button
+                      onClick={copierExport}
+                      className="flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copier
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Demandez au parent d&apos;accorder le consentement dans l&apos;espace parent.
+                  </p>
+                )}
+                {exportData && (
+                  <details className="mt-3">
+                    <summary className="text-xs text-muted-foreground cursor-pointer">
+                      Voir le contenu de l&apos;export ({JSON.stringify(exportData).length} octets)
+                    </summary>
+                    <pre className="mt-2 max-h-64 overflow-auto bg-gray-50 rounded-md p-3 text-[10px] whitespace-pre-wrap">
+                      {JSON.stringify(exportData, null, 2).slice(0, 4000)}
+                    </pre>
+                  </details>
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <History className="w-3.5 h-3.5" /> Parcours & historique
+                </p>
+                {historique && historique.parcours?.length ? (
+                  <ul className="divide-y divide-gray-100 text-sm">
+                    {historique.parcours.map((p, idx) => (
+                      <li key={idx} className="py-2">
+                        <p className="font-medium">
+                          {p.classe} ({p.niveau}) — {p.annee}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{p.etablissement}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Aucun parcours antérieur.</p>
+                )}
+                {portabilite?.transfere && historique?.bulletins?.length ? (
+                  <>
+                    <p className="text-sm font-medium mt-3 mb-1">Bulletins antérieurs (importés) :</p>
+                    <ul className="divide-y divide-gray-100 text-sm">
+                      {historique.bulletins.map((b, idx) => (
+                        <li key={idx} className="py-1.5 text-xs">
+                          {b.annee} — {b.trimestre} :{" "}
+                          <span className="font-medium">{b.moyenne_generale}/20</span> ({b.mention})
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-gray-100 pt-4">
+              <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Upload className="w-3.5 h-3.5 text-purple-600" /> Importer un élève transféré (fichier JSON signé)
+              </p>
+              <form onSubmit={importPortabilite} className="flex items-center gap-3">
+                <input
+                  name="json"
+                  type="file"
+                  accept=".json,application/json"
+                  className="text-xs text-gray-600"
+                />
+                <button className="flex items-center gap-1 rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium hover:bg-secondary">
+                  Importer dans la classe sélectionnée
+                </button>
+              </form>
+              <p className="text-xs text-muted-foreground mt-2">
+                L&apos;élève est réinscrit dans la classe actuellement sélectionnée, avec son parcours et ses
+                bulletins antérieurs consultables (lecture seule).
+              </p>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
