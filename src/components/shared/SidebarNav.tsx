@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Users, ClipboardList, GraduationCap, LayoutDashboard } from "lucide-react";
+import { BookOpen, Users, ClipboardList, GraduationCap, LayoutDashboard, Award, FileCheck2 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/eleves", label: "Élèves", icon: Users },
   { href: "/classes", label: "Classes", icon: BookOpen },
+  { href: "/eleves", label: "Élèves", icon: Users },
   { href: "/notes", label: "Notes", icon: ClipboardList },
   { href: "/bulletins", label: "Bulletins", icon: GraduationCap },
+  { href: "/conseils", label: "Conseils", icon: FileCheck2 },
+  { href: "/examens", label: "Examens", icon: Award },
 ];
 
 export function SidebarNav() {

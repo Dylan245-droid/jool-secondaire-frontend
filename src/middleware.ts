@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/classes", "/eleves", "/notes", "/bulletins", "/conseils"];
+const PROTECTED_PREFIXES = ["/dashboard", "/classes", "/eleves", "/notes", "/bulletins", "/conseils", "/examens", "/vie-scolaire"];
 
 export function middleware(request: NextRequest) {
   const hasAccess = request.cookies.get("jool_access_token");
@@ -23,5 +23,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*", "/classes/:path*", "/eleves/:path*", "/notes/:path*", "/bulletins/:path*", "/conseils/:path*"],
+  matcher: ["/login", "/dashboard/:path*", "/classes/:path*", "/eleves/:path*", "/notes/:path*", "/bulletins/:path*", "/conseils/:path*", "/examens/:path*", "/vie-scolaire/:path*"],
 };
