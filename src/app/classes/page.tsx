@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ export default function ClassesPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);
   const [importResult, setImportResult] = useState<string>("");
-  // PortabilitÃ©
+  // Portabilité
   const [selectedInscription, setSelectedInscription] = useState<number | null>(null);
   const [portMsg, setPortMsg] = useState("");
 
@@ -103,7 +103,7 @@ export default function ClassesPage() {
       setShowForm(false);
       setForm({ label: "", niveau_id: "", school_year_id: "", effectif_max: "35" });
     },
-    onError: (err) => setError(err instanceof ApiError ? err.message : "Erreur crÃ©ation classe"),
+    onError: (err) => setError(err instanceof ApiError ? err.message : "Erreur création classe"),
   });
 
   async function importCsv(e: React.FormEvent<HTMLFormElement>) {
@@ -116,12 +116,12 @@ export default function ClassesPage() {
     setImportResult("");
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2"}/secondaire/classes/${selectedClasse}/import-eleves`,
+        `${process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2"}/secondaire/classes/${selectedClasse}/import-eleves`,
         { method: "POST", body: fd, credentials: "include" }
       );
       const data = await res.json();
       if (!res.ok) throw new ApiError(res.status, data.detail || res.statusText);
-      setImportResult(`ImportÃ©s : ${data.importes}, ignorÃ©s : ${data.ignores}`);
+      setImportResult(`Importés : ${data.importes}, ignorés : ${data.ignores}`);
       queryClient.invalidateQueries({ queryKey: ["inscriptions", selectedClasse] });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
     } catch (err) {
@@ -141,8 +141,8 @@ export default function ClassesPage() {
         { export: exportJson, classe_id: selectedClasse }
       );
       setPortMsg(
-        `Ã‰lÃ¨ve ${res.matricule} importÃ© en classe ${res.classe_id}` +
-          (res.historique ? " (historique complet restaurÃ© en lecture)." : ".")
+        `Élève ${res.matricule} importé en classe ${res.classe_id}` +
+          (res.historique ? " (historique complet restauré en lecture)." : ".")
       );
       queryClient.invalidateQueries({ queryKey: ["inscriptions", selectedClasse] });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
@@ -154,7 +154,7 @@ export default function ClassesPage() {
   function copierExport() {
     if (!exportData) return;
     navigator.clipboard.writeText(JSON.stringify(exportData));
-    setPortMsg("Export copiÃ© dans le presse-papier (Ã  fournir Ã  l'Ã©tablissement d'accueil).");
+    setPortMsg("Export copié dans le presse-papier (à fournir à l'établissement d'accueil).");
   }
 
   function telechargerExport() {
@@ -169,12 +169,12 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
         <header className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Classes & Ã‰lÃ¨ves</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Classes & Élèves</h2>
             <p className="text-sm text-muted-foreground">Gestion des classes, inscriptions et import CSV</p>
           </div>
           <button
@@ -187,7 +187,7 @@ export default function ClassesPage() {
 
         {showForm && (
           <div className="mb-8 bg-white rounded-lg border border-gray-200 p-5 max-w-lg">
-            <h3 className="font-semibold mb-4">CrÃ©er une classe</h3>
+            <h3 className="font-semibold mb-4">Créer une classe</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -215,7 +215,7 @@ export default function ClassesPage() {
                   onChange={(e) => setForm({ ...form, niveau_id: e.target.value })}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 >
-                  <option value="">â€” Choisir â€”</option>
+                  <option value="">— Choisir —</option>
                   {niveaux?.map((n) => (
                     <option key={n.id} value={n.id}>
                       {n.label} ({n.type_etablissement})
@@ -224,13 +224,13 @@ export default function ClassesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">AnnÃ©e scolaire</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Année scolaire</label>
                 <select
                   value={form.school_year_id}
                   onChange={(e) => setForm({ ...form, school_year_id: e.target.value })}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 >
-                  <option value="">â€” Choisir â€”</option>
+                  <option value="">— Choisir —</option>
                   {schoolYears?.map((y) => (
                     <option key={y.id} value={y.id}>
                       {y.label} {y.is_active ? "(active)" : ""}
@@ -244,7 +244,7 @@ export default function ClassesPage() {
                 disabled={!form.label || !form.niveau_id || !form.school_year_id || createClasse.isPending}
                 className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-dark disabled:opacity-50"
               >
-                {createClasse.isPending ? "CrÃ©ationâ€¦" : "CrÃ©er"}
+                {createClasse.isPending ? "Création…" : "Créer"}
               </button>
             </div>
           </div>
@@ -254,7 +254,7 @@ export default function ClassesPage() {
           <section className="bg-white rounded-lg border border-gray-200 p-5">
             <h3 className="font-semibold mb-4">Classes ({classes?.length ?? 0})</h3>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">Chargementâ€¦</p>
+              <p className="text-sm text-muted-foreground">Chargement…</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {classes?.map((c) => (
@@ -266,7 +266,7 @@ export default function ClassesPage() {
                       }`}
                     >
                       <span className="font-medium text-sm">
-                        {c.label} <span className="text-muted-foreground font-normal">â€” {c.niveau.label}</span>
+                        {c.label} <span className="text-muted-foreground font-normal">— {c.niveau.label}</span>
                       </span>
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Users className="w-3.5 h-3.5" /> {c.effectif}/{c.effectif_max}
@@ -275,7 +275,7 @@ export default function ClassesPage() {
                   </li>
                 ))}
                 {classes?.length === 0 && (
-                  <p className="text-sm text-muted-foreground py-4">Aucune classe crÃ©Ã©e.</p>
+                  <p className="text-sm text-muted-foreground py-4">Aucune classe créée.</p>
                 )}
               </ul>
             )}
@@ -284,8 +284,8 @@ export default function ClassesPage() {
           <section className="bg-white rounded-lg border border-gray-200 p-5">
             <h3 className="font-semibold mb-4">
               {selectedClasse
-                ? `Ã‰lÃ¨ves de la classe (${inscriptions?.length ?? 0})`
-                : "Ã‰lÃ¨ves â€” sÃ©lectionnez une classe"}
+                ? `Élèves de la classe (${inscriptions?.length ?? 0})`
+                : "Élèves — sélectionnez une classe"}
             </h3>
             {selectedClasse ? (
               <>
@@ -324,14 +324,14 @@ export default function ClassesPage() {
                   ))}
                   {inscriptions?.length === 0 && (
                     <p className="text-sm text-muted-foreground py-3">
-                      Aucun Ã©lÃ¨ve. CSV : colonnes <code>nom,prenom</code> (option : sexe, date_naissance,
+                      Aucun élève. CSV : colonnes <code>nom,prenom</code> (option : sexe, date_naissance,
                       lieu_naissance, matricule, boursier, redoublant).
                     </p>
                   )}
                 </ul>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Cliquez sur une classe pour voir ses Ã©lÃ¨ves.</p>
+              <p className="text-sm text-muted-foreground">Cliquez sur une classe pour voir ses élèves.</p>
             )}
           </section>
         </div>
@@ -339,7 +339,7 @@ export default function ClassesPage() {
         {selectedInscription && (
           <section className="mt-6 bg-white rounded-lg border border-gray-200 p-5">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-purple-600" /> PortabilitÃ© â€”
+              <QrCode className="w-4 h-4 text-purple-600" /> Portabilité —
               {inscriptions?.find((i) => i.id === selectedInscription)?.etudiant_nom}{" "}
               {inscriptions?.find((i) => i.id === selectedInscription)?.etudiant_prenom} (
               {selectedMatricule})
@@ -353,23 +353,23 @@ export default function ClassesPage() {
                 <p className="text-sm">
                   <span className="font-medium">Consentement parent :</span>{" "}
                   {portabilite?.consentement ? (
-                    <span className="text-green-700">accordÃ©</span>
+                    <span className="text-green-700">accordé</span>
                   ) : (
-                    <span className="text-red-600">non accordÃ© â€” export et QR indisponibles</span>
+                    <span className="text-red-600">non accordé — export et QR indisponibles</span>
                   )}
                 </p>
                 {portabilite?.consentement && portabilite.qr_data_url && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2">QR portabilitÃ© (scannable par l&apos;Ã©tablissement d&apos;accueil) :</p>
+                    <p className="text-xs text-muted-foreground mb-2">QR portabilité (scannable par l&apos;établissement d&apos;accueil) :</p>
                     <img
                       src={portabilite.qr_data_url}
-                      alt={`QR portabilitÃ© ${selectedMatricule}`}
+                      alt={`QR portabilité ${selectedMatricule}`}
                       className="w-40 h-40 border border-gray-200 rounded-lg"
                     />
                     {portabilite.export_url && (
                       <p className="text-xs text-muted-foreground mt-2 break-all">
-                        URL publique signÃ©e :{" "}
-                        <code className="text-[10px]">{portabilite.export_url.slice(0, 80)}â€¦</code>
+                        URL publique signée :{" "}
+                        <code className="text-[10px]">{portabilite.export_url.slice(0, 80)}…</code>
                       </p>
                     )}
                   </div>
@@ -377,14 +377,14 @@ export default function ClassesPage() {
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Export JSON signÃ© (historique complet)</p>
+                <p className="text-sm font-medium mb-2">Export JSON signé (historique complet)</p>
                 {portabilite?.consentement ? (
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={telechargerExport}
                       className="flex items-center gap-1 rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium hover:bg-secondary"
                     >
-                      <Download className="w-3.5 h-3.5" /> TÃ©lÃ©charger
+                      <Download className="w-3.5 h-3.5" /> Télécharger
                     </button>
                     <button
                       onClick={copierExport}
@@ -419,22 +419,22 @@ export default function ClassesPage() {
                     {historique.parcours.map((p, idx) => (
                       <li key={idx} className="py-2">
                         <p className="font-medium">
-                          {p.classe} ({p.niveau}) â€” {p.annee}
+                          {p.classe} ({p.niveau}) — {p.annee}
                         </p>
                         <p className="text-xs text-muted-foreground">{p.etablissement}</p>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Aucun parcours antÃ©rieur.</p>
+                  <p className="text-sm text-muted-foreground">Aucun parcours antérieur.</p>
                 )}
                 {portabilite?.transfere && historique?.bulletins?.length ? (
                   <>
-                    <p className="text-sm font-medium mt-3 mb-1">Bulletins antÃ©rieurs (importÃ©s) :</p>
+                    <p className="text-sm font-medium mt-3 mb-1">Bulletins antérieurs (importés) :</p>
                     <ul className="divide-y divide-gray-100 text-sm">
                       {historique.bulletins.map((b, idx) => (
                         <li key={idx} className="py-1.5 text-xs">
-                          {b.annee} â€” {b.trimestre} :{" "}
+                          {b.annee} — {b.trimestre} :{" "}
                           <span className="font-medium">{b.moyenne_generale}/20</span> ({b.mention})
                         </li>
                       ))}
@@ -446,7 +446,7 @@ export default function ClassesPage() {
 
             <div className="mt-6 border-t border-gray-100 pt-4">
               <p className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Upload className="w-3.5 h-3.5 text-purple-600" /> Importer un Ã©lÃ¨ve transfÃ©rÃ© (fichier JSON signÃ©)
+                <Upload className="w-3.5 h-3.5 text-purple-600" /> Importer un élève transféré (fichier JSON signé)
               </p>
               <form onSubmit={importPortabilite} className="flex items-center gap-3">
                 <input
@@ -456,12 +456,12 @@ export default function ClassesPage() {
                   className="text-xs text-gray-600"
                 />
                 <button className="flex items-center gap-1 rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium hover:bg-secondary">
-                  Importer dans la classe sÃ©lectionnÃ©e
+                  Importer dans la classe sélectionnée
                 </button>
               </form>
               <p className="text-xs text-muted-foreground mt-2">
-                L&apos;Ã©lÃ¨ve est rÃ©inscrit dans la classe actuellement sÃ©lectionnÃ©e, avec son parcours et ses
-                bulletins antÃ©rieurs consultables (lecture seule).
+                L&apos;élève est réinscrit dans la classe actuellement sélectionnée, avec son parcours et ses
+                bulletins antérieurs consultables (lecture seule).
               </p>
             </div>
           </section>

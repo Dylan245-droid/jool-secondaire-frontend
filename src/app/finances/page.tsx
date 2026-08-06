@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
 import { Coins, Download, Plus, Trash2, Wallet } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
 
 interface Classe {
   id: number;
@@ -59,12 +59,12 @@ interface Paiement {
 }
 
 const TYPES_FRAIS = [
-  { value: "scolarite", label: "ScolaritÃ©" },
+  { value: "scolarite", label: "Scolarité" },
   { value: "inscription", label: "Frais d'inscription" },
   { value: "cantine", label: "Cantine" },
   { value: "transport", label: "Transport" },
   { value: "uniforme", label: "Uniforme" },
-  { value: "activite", label: "ActivitÃ©s" },
+  { value: "activite", label: "Activités" },
   { value: "autre", label: "Autre" },
 ];
 
@@ -72,8 +72,8 @@ const MODES = [
   { value: "om", label: "Orange Money" },
   { value: "wave", label: "Wave" },
   { value: "virement", label: "Virement" },
-  { value: "especes", label: "EspÃ¨ces" },
-  { value: "cheque", label: "ChÃ¨que" },
+  { value: "especes", label: "Espèces" },
+  { value: "cheque", label: "Chèque" },
 ];
 
 const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
@@ -129,9 +129,9 @@ export default function FinancesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["frais"] });
       setFraisForm({ label: "", type: "scolarite", montant: "", niveau_id: "", obligatoire: true });
-      setMsg("Frais crÃ©Ã©s.");
+      setMsg("Frais créés.");
     },
-    onError: (err) => setMsg(err instanceof ApiError ? err.message : "Erreur crÃ©ation frais"),
+    onError: (err) => setMsg(err instanceof ApiError ? err.message : "Erreur création frais"),
   });
 
   const supprimerFrais = useMutation({
@@ -150,7 +150,7 @@ export default function FinancesPage() {
         reference: payForm.reference,
       }),
     onSuccess: (data) => {
-      setMsg(`Paiement enregistrÃ©. Total payÃ© par l'Ã©lÃ¨ve : ${fmt(data.total_paye)}.`);
+      setMsg(`Paiement enregistré. Total payé par l'élève : ${fmt(data.total_paye)}.`);
       setPayForm({ inscription_id: "", montant: "", mode: "om", reference: "" });
       queryClient.invalidateQueries({ queryKey: ["paiements"] });
       queryClient.invalidateQueries({ queryKey: ["recap", selectedClasse] });
@@ -164,23 +164,23 @@ export default function FinancesPage() {
   });
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Wallet className="w-6 h-6 text-primary-dark" /> Finances
           </h2>
           <p className="text-sm text-muted-foreground">
-            Frais de scolaritÃ©, encaissements (dÃ©claration caisse) et suivi des impayÃ©s
+            Frais de scolarité, encaissements (déclaration caisse) et suivi des impayés
           </p>
         </header>
 
         <div className="flex gap-2 mb-6">
           {[
-            { key: "frais", label: "Frais de scolaritÃ©" },
+            { key: "frais", label: "Frais de scolarité" },
             { key: "encaissement", label: "Encaissement" },
-            { key: "impayes", label: "ImpayÃ©s" },
+            { key: "impayes", label: "Impayés" },
           ].map((t) => (
             <button
               key={t.key}
@@ -202,15 +202,15 @@ export default function FinancesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section className="bg-white rounded-lg border border-gray-200 p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-green-600" /> DÃ©finir un frais (annÃ©e active)
+                <Plus className="w-4 h-4 text-green-600" /> Définir un frais (année active)
               </h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">LibellÃ©</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Libellé</label>
                   <input
                     value={fraisForm.label}
                     onChange={(e) => setFraisForm({ ...fraisForm, label: e.target.value })}
-                    placeholder="Ex : ScolaritÃ© 6e â€” T1"
+                    placeholder="Ex : Scolarité 6e — T1"
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
@@ -249,7 +249,7 @@ export default function FinancesPage() {
                       onChange={(e) => setFraisForm({ ...fraisForm, niveau_id: e.target.value })}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     >
-                      <option value="">â€” Tous niveaux â€”</option>
+                      <option value="">— Tous niveaux —</option>
                       {niveaux?.map((n) => (
                         <option key={n.id} value={n.id}>
                           {n.label}
@@ -274,7 +274,7 @@ export default function FinancesPage() {
                   disabled={!fraisForm.label || !fraisForm.montant || creerFrais.isPending}
                   className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-dark disabled:opacity-50"
                 >
-                  {creerFrais.isPending ? "CrÃ©ationâ€¦" : "CrÃ©er"}
+                  {creerFrais.isPending ? "Création…" : "Créer"}
                 </button>
               </div>
             </section>
@@ -285,7 +285,7 @@ export default function FinancesPage() {
               </h3>
               {frais?.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Aucun frais dÃ©fini pour l&apos;annÃ©e en cours.
+                  Aucun frais défini pour l&apos;année en cours.
                 </p>
               )}
               <ul className="divide-y divide-gray-100">
@@ -295,12 +295,12 @@ export default function FinancesPage() {
                       <p className="font-medium">
                         {f.label}{" "}
                         <span className="text-xs font-normal text-muted-foreground">
-                          â€” {TYPES_FRAIS.find((t) => t.value === f.type)?.label ?? f.type}
+                          — {TYPES_FRAIS.find((t) => t.value === f.type)?.label ?? f.type}
                         </span>
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {f.obligatoire ? "Obligatoire" : "Facultatif"}
-                        {f.niveau_id ? " â€” niveau restreint" : " â€” tous niveaux"}
+                        {f.niveau_id ? " — niveau restreint" : " — tous niveaux"}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -335,22 +335,22 @@ export default function FinancesPage() {
                     }}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   >
-                    <option value="">â€” Choisir une classe â€”</option>
+                    <option value="">— Choisir une classe —</option>
                     {classes?.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.label} â€” {c.niveau.label}
+                        {c.label} — {c.niveau.label}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Ã‰lÃ¨ve</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Élève</label>
                   <select
                     value={payForm.inscription_id}
                     onChange={(e) => setPayForm({ ...payForm, inscription_id: e.target.value })}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   >
-                    <option value="">â€” Choisir â€”</option>
+                    <option value="">— Choisir —</option>
                     {inscriptions?.map((i) => (
                       <option key={i.id} value={i.id}>
                         {i.etudiant_nom} {i.etudiant_prenom} ({i.matricule})
@@ -385,7 +385,7 @@ export default function FinancesPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    RÃ©fÃ©rence (OM/Wave/virement, optionnel)
+                    Référence (OM/Wave/virement, optionnel)
                   </label>
                   <input
                     value={payForm.reference}
@@ -399,7 +399,7 @@ export default function FinancesPage() {
                   disabled={!payForm.inscription_id || !payForm.montant || enregistrerPaiement.isPending}
                   className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-dark disabled:opacity-50"
                 >
-                  {enregistrerPaiement.isPending ? "Enregistrementâ€¦" : "Encaisser"}
+                  {enregistrerPaiement.isPending ? "Enregistrement…" : "Encaisser"}
                 </button>
               </div>
             </section>
@@ -414,7 +414,7 @@ export default function FinancesPage() {
                         {fmt(p.montant)}{" "}
                         <span className="text-xs font-normal text-muted-foreground">
                           ({MODES.find((m) => m.value === p.mode)?.label ?? p.mode}
-                          {p.reference && ` â€” ${p.reference}`})
+                          {p.reference && ` — ${p.reference}`})
                         </span>
                       </p>
                       <span
@@ -428,7 +428,7 @@ export default function FinancesPage() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {p.eleve} ({p.matricule}) â€” {p.frais} â€” {new Date(p.date).toLocaleDateString("fr-FR")}
+                      {p.eleve} ({p.matricule}) — {p.frais} — {new Date(p.date).toLocaleDateString("fr-FR")}
                     </p>
                     {p.statut === "valide" && (
                       <button
@@ -456,10 +456,10 @@ export default function FinancesPage() {
                 onChange={(e) => setSelectedClasse(e.target.value ? Number(e.target.value) : null)}
                 className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
               >
-                <option value="">â€” Choisir une classe â€”</option>
+                <option value="">— Choisir une classe —</option>
                 {classes?.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.label} â€” {c.niveau.label}
+                    {c.label} — {c.niveau.label}
                   </option>
                 ))}
               </select>
@@ -475,15 +475,15 @@ export default function FinancesPage() {
 
             {selectedClasse && (
               <section className="bg-white rounded-lg border border-gray-200 p-5">
-                <h3 className="font-semibold mb-4">RÃ©capitulatif â€” {recap?.eleves.length ?? 0} Ã©lÃ¨ves</h3>
+                <h3 className="font-semibold mb-4">Récapitulatif — {recap?.eleves.length ?? 0} élèves</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs text-muted-foreground border-b">
-                        <th className="py-2">Ã‰lÃ¨ve</th>
+                        <th className="py-2">Élève</th>
                         <th className="py-2">Matricule</th>
-                        <th className="py-2 text-right">DÃ»</th>
-                        <th className="py-2 text-right">PayÃ©</th>
+                        <th className="py-2 text-right">Dû</th>
+                        <th className="py-2 text-right">Payé</th>
                         <th className="py-2 text-right">Reste</th>
                         <th className="py-2">Statut</th>
                       </tr>

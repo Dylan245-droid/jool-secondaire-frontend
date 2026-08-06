@@ -200,9 +200,9 @@ export default function VieScolairePage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Vie scolaire</h2>
           <p className="text-sm text-muted-foreground">Absences, retards, sanctions et cahier de textes</p>

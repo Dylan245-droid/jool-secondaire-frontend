@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { AlertCircle, Bell, BookOpen, FileText, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
 
 interface Enfant {
   inscription_id: number;
@@ -101,7 +101,7 @@ interface FinancesEnfant {
 }
 
 const MENTIONS: Record<string, string> = {
-  tb: "TrÃ¨s Bien",
+  tb: "Très Bien",
   b: "Bien",
   ab: "Assez Bien",
   passable: "Passable",
@@ -187,8 +187,8 @@ export default function ParentPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-primary-dark">Espace Parent â€” Jool Secondaire</h1>
-          <p className="text-xs text-muted-foreground">Suivi de la scolaritÃ© de vos enfants</p>
+          <h1 className="text-lg font-bold text-primary-dark">Espace Parent — Jool Secondaire</h1>
+          <p className="text-xs text-muted-foreground">Suivi de la scolarité de vos enfants</p>
         </div>
         <button
           onClick={() => setShowAlertes((v) => !v)}
@@ -239,7 +239,7 @@ export default function ParentPage() {
       )}
 
       <main className="p-8 max-w-6xl mx-auto">
-        {isLoading && <p className="text-sm text-muted-foreground">Chargementâ€¦</p>}
+        {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
           {enfants?.map((e) => (
@@ -260,7 +260,7 @@ export default function ParentPage() {
                 <span className="text-xs text-muted-foreground">{e.matricule}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {e.niveau_label} {e.classe_label} â€” {e.annee_scolaire}
+                {e.niveau_label} {e.classe_label} — {e.annee_scolaire}
               </p>
               <div className="flex flex-wrap gap-2 mt-3 text-xs">
                 <span className="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5">
@@ -289,7 +289,7 @@ export default function ParentPage() {
         {!isLoading && enfants?.length === 0 && (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Aucun enfant liÃ© Ã  ce compte. Contactez l&apos;administration de l&apos;Ã©tablissement.
+              Aucun enfant lié à ce compte. Contactez l&apos;administration de l&apos;établissement.
             </p>
           </div>
         )}
@@ -301,7 +301,7 @@ export default function ParentPage() {
                 { key: "bulletins", label: "Bulletins" },
                 { key: "viescolaire", label: "Vie scolaire" },
                 { key: "cahier", label: "Cahier de textes" },
-                { key: "portabilite", label: "PortabilitÃ©" },
+                { key: "portabilite", label: "Portabilité" },
                 { key: "finances", label: "Finances" },
               ].map((t) => (
                 <button
@@ -319,11 +319,11 @@ export default function ParentPage() {
             {tab === "bulletins" && (
               <section className="bg-white rounded-lg border border-gray-200 p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-green-600" /> Bulletins signÃ©s
+                  <FileText className="w-4 h-4 text-green-600" /> Bulletins signés
                 </h3>
                 {bulletins?.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Aucun bulletin Ã©mis pour le moment. L&apos;administration les publie aprÃ¨s le conseil de classe.
+                    Aucun bulletin émis pour le moment. L&apos;administration les publie après le conseil de classe.
                   </p>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -348,12 +348,12 @@ export default function ParentPage() {
                         <span className="text-sm font-normal text-muted-foreground"> /20</span>
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Rang : {b.rang_classe}/{b.effectif_classe} â€” abs. : {b.absences_non_justifiees} non just. /{" "}
-                        {b.absences_justifiees} just. â€” retards : {b.retards}
+                        Rang : {b.rang_classe}/{b.effectif_classe} — abs. : {b.absences_non_justifiees} non just. /{" "}
+                        {b.absences_justifiees} just. — retards : {b.retards}
                       </p>
                       <div className="flex items-center justify-between mt-3">
                         <span className="text-xs text-muted-foreground">
-                          Code vÃ©rification : <code>{b.secret_code}</code>
+                          Code vérification : <code>{b.secret_code}</code>
                         </span>
                         <a
                           href={`${API_BASE}${b.pdf_url}`}
@@ -361,7 +361,7 @@ export default function ParentPage() {
                           rel="noreferrer"
                           className="flex items-center gap-1 rounded-md bg-primary text-white px-3 py-1.5 text-xs font-medium hover:bg-primary-dark"
                         >
-                          <FileText className="w-3 h-3" /> PDF signÃ©
+                          <FileText className="w-3 h-3" /> PDF signé
                         </a>
                       </div>
                     </div>
@@ -382,14 +382,14 @@ export default function ParentPage() {
                     )}
                   </h3>
                   {viescolaire?.absences.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Aucune absence signalÃ©e.</p>
+                    <p className="text-sm text-muted-foreground">Aucune absence signalée.</p>
                   )}
                   <ul className="divide-y divide-gray-100">
                     {viescolaire?.absences.map((a) => (
                       <li key={a.id} className="py-2 flex items-center justify-between text-sm">
                         <span>
-                          {new Date(a.date).toLocaleDateString("fr-FR")} â€”{" "}
-                          {a.type === "retard" ? "Retard" : a.type === "sortie" ? "Sortie anticipÃ©e" : "Absence"}
+                          {new Date(a.date).toLocaleDateString("fr-FR")} —{" "}
+                          {a.type === "retard" ? "Retard" : a.type === "sortie" ? "Sortie anticipée" : "Absence"}
                           {a.matiere && <span className="text-muted-foreground"> ({a.matiere})</span>}
                         </span>
                         <span
@@ -408,7 +408,7 @@ export default function ParentPage() {
                   </ul>
                   {viescolaire?.absences.some((a) => a.statut === "non_justifiee") && (
                     <p className="text-xs text-muted-foreground mt-3">
-                      Veuillez fournir un justificatif Ã  la direction (certificat mÃ©dical, mot des parents).
+                      Veuillez fournir un justificatif à la direction (certificat médical, mot des parents).
                     </p>
                   )}
                 </section>
@@ -428,7 +428,7 @@ export default function ParentPage() {
                           <span className="text-muted-foreground"> le {s.date_sanction}</span>
                           {s.levee && (
                             <span className="ml-2 text-xs rounded-full bg-green-100 text-green-800 px-2 py-0.5">
-                              levÃ©e
+                              levée
                             </span>
                           )}
                         </p>
@@ -445,14 +445,14 @@ export default function ParentPage() {
                 <h3 className="font-semibold mb-1 flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-blue-600" /> Cahier de textes
                   <span className="text-xs font-normal text-muted-foreground">
-                    {cahier?.classe_label} {cahier?.trimestre ? `â€” ${cahier.trimestre}` : ""}
+                    {cahier?.classe_label} {cahier?.trimestre ? `— ${cahier.trimestre}` : ""}
                   </span>
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Suivez les cours dispensÃ©s et les devoirs Ã  faire.
+                  Suivez les cours dispensés et les devoirs à faire.
                 </p>
                 {cahier?.seances.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Aucune sÃ©ance publiÃ©e pour le moment.</p>
+                  <p className="text-sm text-muted-foreground">Aucune séance publiée pour le moment.</p>
                 )}
                 <ul className="divide-y divide-gray-100">
                   {cahier?.seances.map((s) => (
@@ -461,7 +461,7 @@ export default function ParentPage() {
                         <p className="text-sm font-medium">
                           {s.matiere_label}{" "}
                           <span className="text-muted-foreground font-normal">
-                            â€” sÃ©ance nÂ°{s.numero_seance} du{" "}
+                            — séance n°{s.numero_seance} du{" "}
                             {new Date(s.date_seance).toLocaleDateString("fr-FR")}
                           </span>
                         </p>
@@ -484,20 +484,20 @@ export default function ParentPage() {
             {tab === "portabilite" && (
               <section className="bg-white rounded-lg border border-gray-200 p-5">
                 <h3 className="font-semibold mb-1 flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-purple-600" /> PortabilitÃ© scolaire
+                  <QrCode className="w-4 h-4 text-purple-600" /> Portabilité scolaire
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Autorisez le transfert du dossier scolaire de votre enfant (parcours, bulletins,
-                  examens, vie scolaire) vers un autre Ã©tablissement du rÃ©seau, via un QR code signÃ©.
+                  examens, vie scolaire) vers un autre établissement du réseau, via un QR code signé.
                 </p>
                 <div className="rounded-lg border border-gray-200 p-4 max-w-xl">
                   <div className="flex items-center justify-between">
                     <p className="text-sm">
                       <span className="font-medium">Consentement actuel :</span>{" "}
                       {portabilite?.consentement ? (
-                        <span className="text-green-700 font-medium">accordÃ©</span>
+                        <span className="text-green-700 font-medium">accordé</span>
                       ) : (
-                        <span className="text-red-600 font-medium">non accordÃ©</span>
+                        <span className="text-red-600 font-medium">non accordé</span>
                       )}
                     </p>
                     <button
@@ -512,24 +512,24 @@ export default function ParentPage() {
                       {portabilite?.consentement
                         ? "Retirer le consentement"
                         : accorderConsentement.isPending
-                        ? "Enregistrementâ€¦"
+                        ? "Enregistrement…"
                         : "Accorder le consentement"}
                     </button>
                   </div>
                   {portabilite?.transfere && (
                     <p className="text-xs rounded-md bg-secondary px-3 py-2 text-primary-dark mt-3">
-                      Cet enfant a Ã©tÃ© transfÃ©rÃ© depuis un autre Ã©tablissement : son historique est
+                      Cet enfant a été transféré depuis un autre établissement : son historique est
                       consultable par l&apos;administration.
                     </p>
                   )}
                   {portabilite?.consentement && portabilite.qr_data_url && (
                     <div className="mt-4">
                       <p className="text-xs text-muted-foreground mb-2">
-                        QR code Ã  prÃ©senter lors de l&apos;inscription dans le nouvel Ã©tablissement :
+                        QR code à présenter lors de l&apos;inscription dans le nouvel établissement :
                       </p>
                       <img
                         src={portabilite.qr_data_url}
-                        alt="QR portabilitÃ©"
+                        alt="QR portabilité"
                         className="w-40 h-40 border border-gray-200 rounded-lg"
                       />
                       <p className="text-xs text-muted-foreground mt-2 break-all">
@@ -545,15 +545,15 @@ export default function ParentPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <section className="bg-white rounded-lg border border-gray-200 p-5">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <Wallet className="w-4 h-4 text-amber-600" /> Situation financiÃ¨re
+                    <Wallet className="w-4 h-4 text-amber-600" /> Situation financière
                   </h3>
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="rounded-lg bg-gray-50 p-3 text-center">
-                      <p className="text-xs text-muted-foreground">DÃ»</p>
+                      <p className="text-xs text-muted-foreground">Dû</p>
                       <p className="text-lg font-bold">{finances?.total_du.toLocaleString("fr-FR")} F</p>
                     </div>
                     <div className="rounded-lg bg-green-50 p-3 text-center">
-                      <p className="text-xs text-muted-foreground">PayÃ©</p>
+                      <p className="text-xs text-muted-foreground">Payé</p>
                       <p className="text-lg font-bold text-green-700">
                         {finances?.total_paye.toLocaleString("fr-FR")} F
                       </p>
@@ -565,7 +565,7 @@ export default function ParentPage() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm font-medium mb-2">Frais de l&apos;annÃ©e</p>
+                  <p className="text-sm font-medium mb-2">Frais de l&apos;année</p>
                   <ul className="divide-y divide-gray-100">
                     {finances?.frais.map((f, idx) => (
                       <li key={idx} className="flex items-center justify-between py-2 text-sm">
@@ -574,13 +574,13 @@ export default function ParentPage() {
                       </li>
                     ))}
                     {finances?.frais.length === 0 && (
-                      <li className="text-sm text-muted-foreground py-2">Aucun frais dÃ©fini.</li>
+                      <li className="text-sm text-muted-foreground py-2">Aucun frais défini.</li>
                     )}
                   </ul>
                 </section>
 
                 <section className="bg-white rounded-lg border border-gray-200 p-5">
-                  <h3 className="font-semibold mb-4">Paiements enregistrÃ©s</h3>
+                  <h3 className="font-semibold mb-4">Paiements enregistrés</h3>
                   <ul className="divide-y divide-gray-100">
                     {finances?.paiements.map((p) => (
                       <li key={p.id} className="py-2 text-sm">
@@ -597,14 +597,14 @@ export default function ParentPage() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {p.frais} â€” {p.mode}
-                          {p.reference && ` (${p.reference})`} â€”{" "}
+                          {p.frais} — {p.mode}
+                          {p.reference && ` (${p.reference})`} —{" "}
                           {new Date(p.date).toLocaleDateString("fr-FR")}
                         </p>
                       </li>
                     ))}
                     {finances?.paiements.length === 0 && (
-                      <li className="text-sm text-muted-foreground py-2">Aucun paiement enregistrÃ©.</li>
+                      <li className="text-sm text-muted-foreground py-2">Aucun paiement enregistré.</li>
                     )}
                   </ul>
                 </section>
@@ -613,7 +613,7 @@ export default function ParentPage() {
 
             <section className="bg-white rounded-lg border border-gray-200 p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-purple-600" /> Messages Ã  l&apos;Ã©tablissement
+                <MessageSquare className="w-4 h-4 text-purple-600" /> Messages à l&apos;établissement
               </h3>
               <div className="max-w-xl space-y-3 mb-6">
                 <input
@@ -625,7 +625,7 @@ export default function ParentPage() {
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Votre messageâ€¦"
+                  placeholder="Votre message…"
                   rows={3}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 />
@@ -634,7 +634,7 @@ export default function ParentPage() {
                   disabled={!message || envoyerMessage.isPending}
                   className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-dark disabled:opacity-50"
                 >
-                  {envoyerMessage.isPending ? "Envoiâ€¦" : "Envoyer"}
+                  {envoyerMessage.isPending ? "Envoi…" : "Envoyer"}
                 </button>
               </div>
               <ul className="divide-y divide-gray-100 max-w-2xl">
@@ -649,14 +649,14 @@ export default function ParentPage() {
                     <p className="text-sm text-gray-700 mt-0.5">{m.message}</p>
                     {m.replied && (
                       <p className="text-sm mt-2 rounded-md bg-green-50 border border-green-100 px-3 py-2">
-                        <span className="font-medium text-green-800">RÃ©ponse de l&apos;Ã©tablissement :</span>{" "}
+                        <span className="font-medium text-green-800">Réponse de l&apos;établissement :</span>{" "}
                         {m.reply}
                       </p>
                     )}
                   </li>
                 ))}
                 {messages?.length === 0 && (
-                  <li className="text-sm text-muted-foreground py-3">Aucun message envoyÃ©.</li>
+                  <li className="text-sm text-muted-foreground py-3">Aucun message envoyé.</li>
                 )}
               </ul>
             </section>
