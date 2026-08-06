@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PREFIXES = ["/dashboard", "/classes", "/eleves", "/notes", "/bulletins", "/conseils", "/examens", "/viescolaire", "/finances", "/parent"];
 
 export function middleware(request: NextRequest) {
-  const hasAccess = request.cookies.get("jool_access_token");
+  const hasAccess = request.cookies.get("jool_secondary_access_token");
   const { pathname } = request.nextUrl;
 
   if (PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) && !hasAccess) {
