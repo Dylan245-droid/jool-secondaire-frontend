@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8003/api/v2"
+﻿const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2"
 
 export class ApiError extends Error {
   status: number

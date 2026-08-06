@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,19 +39,19 @@ interface Decision {
 }
 
 const STATUTS: Record<Conseil["statut"], string> = {
-  prevu: "Prévu",
+  prevu: "PrÃ©vu",
   en_cours: "En cours",
-  cloture: "Clôturé",
-  valide: "Validé",
+  cloture: "ClÃ´turÃ©",
+  valide: "ValidÃ©",
 };
 
 const DECISIONS = [
-  { value: "passage", label: "Passage classe supérieure" },
+  { value: "passage", label: "Passage classe supÃ©rieure" },
   { value: "passage_conditionnel", label: "Passage conditionnel" },
   { value: "redoublement", label: "Redoublement" },
   { value: "orientation_pro", label: "Orientation voie pro" },
-  { value: "reorientation", label: "Réorientation" },
-  { value: "exclusion", label: "Exclusion définitive" },
+  { value: "reorientation", label: "RÃ©orientation" },
+  { value: "exclusion", label: "Exclusion dÃ©finitive" },
 ];
 
 export default function ConseilsPage() {
@@ -98,7 +98,7 @@ export default function ConseilsPage() {
     if (!classeId) return;
     const trimestre = trimestres?.find((t) => !t.conseil_classe_fait) ?? trimestres?.[0];
     if (!trimestre) {
-      setError("Aucun trimestre disponible. Créez d'abord un trimestre.");
+      setError("Aucun trimestre disponible. CrÃ©ez d'abord un trimestre.");
       return;
     }
     run.mutate({
@@ -132,7 +132,7 @@ export default function ConseilsPage() {
         <header className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Conseils de classe</h2>
-            <p className="text-sm text-muted-foreground">Workflow : prévu → en cours → clôturé → validé</p>
+            <p className="text-sm text-muted-foreground">Workflow : prÃ©vu â†’ en cours â†’ clÃ´turÃ© â†’ validÃ©</p>
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -140,9 +140,9 @@ export default function ConseilsPage() {
               onChange={(e) => { setClasseId(e.target.value); setSelected(null); }}
               className="rounded-md border border-gray-300 px-3 py-2 text-sm"
             >
-              <option value="">— Classe —</option>
+              <option value="">â€” Classe â€”</option>
               {classes?.map((c) => (
-                <option key={c.id} value={c.id}>{c.label} — {c.niveau.label}</option>
+                <option key={c.id} value={c.id}>{c.label} â€” {c.niveau.label}</option>
               ))}
             </select>
             <button
@@ -161,7 +161,7 @@ export default function ConseilsPage() {
           <section className="bg-white rounded-lg border border-gray-200 p-5">
             <h3 className="font-semibold mb-4">Conseils ({conseils?.length ?? 0})</h3>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">Chargement…</p>
+              <p className="text-sm text-muted-foreground">Chargementâ€¦</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {conseils?.map((c) => (
@@ -173,7 +173,7 @@ export default function ConseilsPage() {
                       }`}
                     >
                       <span className="text-sm font-medium">
-                        {c.date} <span className="text-muted-foreground">— {trimestres?.find((t) => t.id === c.trimestre_id)?.label ?? "T?"}</span>
+                        {c.date} <span className="text-muted-foreground">â€” {trimestres?.find((t) => t.id === c.trimestre_id)?.label ?? "T?"}</span>
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         c.statut === "valide" ? "bg-green-100 text-green-700"
@@ -195,7 +195,7 @@ export default function ConseilsPage() {
 
           <section className="bg-white rounded-lg border border-gray-200 p-5">
             <h3 className="font-semibold mb-4">
-              {selected ? `Conseil du ${selected.date} — ${STATUTS[selected.statut]}` : "Détail du conseil"}
+              {selected ? `Conseil du ${selected.date} â€” ${STATUTS[selected.statut]}` : "DÃ©tail du conseil"}
             </h3>
 
             {selected && (
@@ -212,7 +212,7 @@ export default function ConseilsPage() {
                           : i === idxStatut ? "border-primary text-primary"
                           : "border-gray-300"
                         }`}>
-                          {i < idxStatut ? "✓" : i + 1}
+                          {i < idxStatut ? "âœ“" : i + 1}
                         </span>
                         {STATUTS[s]}
                       </div>
@@ -228,7 +228,7 @@ export default function ConseilsPage() {
                       onClick={() => run.mutate({ url: `/secondaire/conseils/${selected.id}/ouvrir` })}
                       className="flex items-center gap-1.5 rounded-md bg-primary text-white px-3 py-1.5 text-xs font-medium"
                     >
-                      <PenLine className="w-3.5 h-3.5" /> Ouvrir (pré-remplir décisions)
+                      <PenLine className="w-3.5 h-3.5" /> Ouvrir (prÃ©-remplir dÃ©cisions)
                     </button>
                   )}
                   {selected.statut === "en_cours" && (
@@ -236,7 +236,7 @@ export default function ConseilsPage() {
                       onClick={() => run.mutate({ url: `/secondaire/conseils/${selected.id}/cloturer` })}
                       className="flex items-center gap-1.5 rounded-md bg-amber-600 text-white px-3 py-1.5 text-xs font-medium"
                     >
-                      <Lock className="w-3.5 h-3.5" /> Clôturer
+                      <Lock className="w-3.5 h-3.5" /> ClÃ´turer
                     </button>
                   )}
                   {selected.statut === "cloture" && (
@@ -246,7 +246,7 @@ export default function ConseilsPage() {
                           onClick={() => run.mutate({ url: `/secondaire/conseils/${selected.id}/signer`, body: { role: "president" } })}
                           className="rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium"
                         >
-                          Signer président
+                          Signer prÃ©sident
                         </button>
                       )}
                       {!selected.pv_signe_secretaire && (
@@ -254,7 +254,7 @@ export default function ConseilsPage() {
                           onClick={() => run.mutate({ url: `/secondaire/conseils/${selected.id}/signer`, body: { role: "secretaire" } })}
                           className="rounded-md border border-primary text-primary px-3 py-1.5 text-xs font-medium"
                         >
-                          Signer secrétaire
+                          Signer secrÃ©taire
                         </button>
                       )}
                       {selected.pv_signe_president && selected.pv_signe_secretaire && (
@@ -269,7 +269,7 @@ export default function ConseilsPage() {
                   )}
                   {(selected.statut === "cloture" || selected.statut === "valide") && (
                     <a
-                      href={`${process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8003/api/v2"}/secondaire/conseils/${selected.id}/pv`}
+                      href={`${process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2"}/secondaire/conseils/${selected.id}/pv`}
                       target="_blank"
                       className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700"
                     >
@@ -278,7 +278,7 @@ export default function ConseilsPage() {
                   )}
                 </div>
 
-                {/* Décisions */}
+                {/* DÃ©cisions */}
                 {selected.statut !== "prevu" && (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -287,7 +287,7 @@ export default function ConseilsPage() {
                           <th className="py-2 pr-3">Rang</th>
                           <th className="py-2 pr-3">Moyenne</th>
                           <th className="py-2 pr-3">Mention</th>
-                          <th className="py-2">Décision</th>
+                          <th className="py-2">DÃ©cision</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -317,7 +317,7 @@ export default function ConseilsPage() {
               </>
             )}
             {!selected && (
-              <p className="text-sm text-muted-foreground">Sélectionnez une classe puis un conseil.</p>
+              <p className="text-sm text-muted-foreground">SÃ©lectionnez une classe puis un conseil.</p>
             )}
           </section>
         </div>

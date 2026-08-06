@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,11 +36,11 @@ interface Inscription {
 }
 
 const RESULTATS = [
-  { value: "absent", label: "Non renseigné" },
+  { value: "absent", label: "Non renseignÃ©" },
   { value: "admis", label: "Admis" },
   { value: "admis_mention", label: "Admis avec mention" },
-  { value: "ajourne", label: "Ajourné" },
-  { value: "elimine", label: "Éliminé" },
+  { value: "ajourne", label: "AjournÃ©" },
+  { value: "elimine", label: "Ã‰liminÃ©" },
 ];
 
 export default function ExamensPage() {
@@ -99,7 +99,7 @@ export default function ExamensPage() {
     });
   }
 
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8003/api/v2";
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8007/api/v2";
 
   return (
     <div className="flex min-h-screen">
@@ -109,7 +109,7 @@ export default function ExamensPage() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Examens officiels</h2>
             <p className="text-sm text-muted-foreground">
-              Sessions Brevet/Bac — inscriptions candidats, convocations, attestations
+              Sessions Brevet/Bac â€” inscriptions candidats, convocations, attestations
             </p>
           </div>
           <button
@@ -124,13 +124,13 @@ export default function ExamensPage() {
 
         {showForm && (
           <form onSubmit={creerSession} className="mb-8 bg-white rounded-lg border border-gray-200 p-5 max-w-lg space-y-3">
-            <h3 className="font-semibold">Créer une session</h3>
+            <h3 className="font-semibold">CrÃ©er une session</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                  <option value="brevet">Brevet des Collèges</option>
-                  <option value="bac">Baccalauréat</option>
+                  <option value="brevet">Brevet des CollÃ¨ges</option>
+                  <option value="bac">BaccalaurÃ©at</option>
                 </select>
               </div>
               <div>
@@ -141,20 +141,20 @@ export default function ExamensPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Année</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">AnnÃ©e</label>
                 <input type="number" value={form.annee} onChange={(e) => setForm({ ...form, annee: Number(e.target.value) })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Début épreuves</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">DÃ©but Ã©preuves</label>
                 <input type="date" value={form.date_debut_epreuves} onChange={(e) => setForm({ ...form, date_debut_epreuves: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Fin épreuves</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Fin Ã©preuves</label>
                 <input type="date" value={form.date_fin_epreuves} onChange={(e) => setForm({ ...form, date_fin_epreuves: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
               </div>
             </div>
             <button type="submit" disabled={!form.date_debut_epreuves || !form.date_fin_epreuves || run.isPending} className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
-              {run.isPending ? "Création…" : "Créer"}
+              {run.isPending ? "CrÃ©ationâ€¦" : "CrÃ©er"}
             </button>
           </form>
         )}
@@ -170,17 +170,17 @@ export default function ExamensPage() {
                     className={`w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-gray-50 ${selected?.id === e.id ? "bg-secondary" : ""}`}
                   >
                     <span className="text-sm font-medium">
-                      {e.type === "brevet" ? "Brevet" : "Baccalauréat"} {e.annee}
-                      <span className="text-muted-foreground font-normal"> — {e.session}</span>
+                      {e.type === "brevet" ? "Brevet" : "BaccalaurÃ©at"} {e.annee}
+                      <span className="text-muted-foreground font-normal"> â€” {e.session}</span>
                     </span>
                     <span className="flex items-center gap-2 text-xs text-muted-foreground">
                       <GraduationCap className="w-3.5 h-3.5" /> {e.candidats}
-                      {e.is_publie && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">Publié</span>}
+                      {e.is_publie && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">PubliÃ©</span>}
                     </span>
                   </button>
                 </li>
               ))}
-              {examens?.length === 0 && <p className="text-sm text-muted-foreground py-4">Aucune session créée.</p>}
+              {examens?.length === 0 && <p className="text-sm text-muted-foreground py-4">Aucune session crÃ©Ã©e.</p>}
             </ul>
           </section>
 
@@ -196,12 +196,12 @@ export default function ExamensPage() {
                     disabled={!inscriptions?.length || run.isPending}
                     className="flex items-center gap-1.5 rounded-md bg-primary text-white px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Inscrire tous les élèves
+                    <Plus className="w-3.5 h-3.5" /> Inscrire tous les Ã©lÃ¨ves
                   </button>
                   <span className="text-xs text-muted-foreground">({inscriptions?.length ?? 0} inscrits scolaires dispo.)</span>
                   {!selected.is_publie && (
                     <button onClick={() => run.mutate({ url: `/secondaire/examens/${selected.id}/publier` })} className="ml-auto text-xs text-primary font-medium hover:underline">
-                      Publier les résultats
+                      Publier les rÃ©sultats
                     </button>
                   )}
                 </div>
@@ -209,10 +209,10 @@ export default function ExamensPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs text-muted-foreground border-b">
-                        <th className="py-2 pr-3">N° table</th>
-                        <th className="py-2 pr-3">Élève</th>
+                        <th className="py-2 pr-3">NÂ° table</th>
+                        <th className="py-2 pr-3">Ã‰lÃ¨ve</th>
                         <th className="py-2 pr-3">Classe</th>
-                        <th className="py-2">Résultat</th>
+                        <th className="py-2">RÃ©sultat</th>
                         <th className="py-2"></th>
                       </tr>
                     </thead>
@@ -268,7 +268,7 @@ export default function ExamensPage() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Sélectionnez une session.</p>
+              <p className="text-sm text-muted-foreground">SÃ©lectionnez une session.</p>
             )}
           </section>
         </div>
