@@ -110,6 +110,23 @@ export default function BulletinsPage() {
     },
   });
 
+  const emettreTous = useMutation({
+    mutationFn: () =>
+      api.post<{ emises: number }>(
+        `/secondaire/bulletins/emettre/classe/${classeId}/trimestre/${trimestreId}`
+      ),
+    onSuccess: (d) => {
+      setMsg(`${d.emises} bulletin(s) émis.`);
+      setError("");
+      qc.invalidateQueries({ queryKey: ["trimestres"] });
+      tableau?.forEach((l) => chargerBulletin(l.inscription_id));
+    },
+    onError: (err) => {
+      setError(err instanceof ApiError ? err.message : "Erreur émission des bulletins");
+      setMsg("");
+    },
+  });
+
   async function chargerBulletin(inscriptionId: number) {
     try {
       const b = await api.get<Bulletin>(
@@ -219,6 +236,15 @@ export default function BulletinsPage() {
             >
               <FilePlus2 className="w-4 h-4" />
               {generer.isPending ? "Génération…" : "Générer bulletins"}
+            </button>
+            <button
+              onClick={() => emettreTous.mutate()}
+              disabled={!classeId || !trimestreId || !trimestre?.bulletins_generes || emettreTous.isPending}
+              title={trimestre?.bulletins_generes ? "" : "Générer les bulletins d'abord"}
+              className="flex items-center gap-2 rounded-md bg-primary-dark text-white px-3 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-40"
+            >
+              <Send className="w-4 h-4" />
+              {emettreTous.isPending ? "Émission…" : "Émettre tous"}
             </button>
           </div>
         </div>
