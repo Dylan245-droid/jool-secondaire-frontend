@@ -46,10 +46,12 @@ export default function ElevesPage() {
 
   const { data: inscriptions, isLoading } = useQuery({
     queryKey: ["inscriptions", classeId, statut],
-    queryFn: () =>
-      api.get<Inscription[]>(
-        `/secondaire/inscriptions?classe_id=${classeId || ""}&statut=${statut}`
-      ),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (classeId) params.set("classe_id", classeId);
+      if (statut) params.set("statut", statut);
+      return api.get<Inscription[]>(`/secondaire/inscriptions?${params.toString()}`);
+    },
   });
 
   const transferer = useMutation({
