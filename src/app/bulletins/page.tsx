@@ -16,6 +16,7 @@ interface Trimestre {
   label: string;
   notes_cloturees: boolean;
   moyennes_calculees: boolean;
+  bulletins_generes: boolean;
   bulletins_emises: boolean;
 }
 
@@ -297,7 +298,12 @@ export default function BulletinsPage() {
                         )}
                       </td>
                       <td className="py-2 px-4">
-                        {b === undefined && (
+                        {b === undefined && !trimestre?.bulletins_generes && (
+                          <span className="text-xs text-gray-400">
+                            Cliquez sur « Générer bulletins » d&apos;abord
+                          </span>
+                        )}
+                        {b === undefined && trimestre?.bulletins_generes && (
                           <button
                             onClick={() => chargerBulletin(l.inscription_id)}
                             className="text-xs text-primary-dark hover:underline"
@@ -307,7 +313,7 @@ export default function BulletinsPage() {
                         )}
                         {b === null && (
                           <span className="text-xs text-red-600">
-                            Générer les bulletins pour ce trimestre
+                            Bulletin non généré pour cet élève
                           </span>
                         )}
                         {b && (
