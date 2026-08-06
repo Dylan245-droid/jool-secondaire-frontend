@@ -100,6 +100,8 @@ export default function BulletinsPage() {
       setMsg(`${d.generes} bulletin(s) généré(s).`);
       setError("");
       qc.invalidateQueries({ queryKey: ["trimestres"] });
+      qc.invalidateQueries({ queryKey: ["moyennes-tableau"] });
+      tableau?.forEach((l) => chargerBulletin(l.inscription_id));
     },
     onError: (err) => {
       setError(err instanceof ApiError ? err.message : "Erreur génération bulletins");
