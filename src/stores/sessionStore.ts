@@ -5,9 +5,19 @@ import { persist } from "zustand/middleware"
 
 export type Role = "std" | "tch" | "adm" | "owner" | "boa" | "prt"
 
+export interface SessionUser {
+  id: number
+  email: string
+  first_name?: string
+  last_name?: string
+  role: Role
+  structureId?: number
+  structureName?: string
+}
+
 interface SessionState {
-  user: { id: number; email: string; role: Role; structureId?: number } | null
-  setUser: (user: SessionState["user"]) => void
+  user: SessionUser | null
+  setUser: (user: SessionUser) => void
   clear: () => void
 }
 
