@@ -12,7 +12,7 @@ export class ApiError extends Error {
 // POST /auth/refresh est déclenché (single-flight), puis la requête est rejouée.
 let refreshPromise: Promise<boolean> | null = null;
 
-const SKIP_REFRESH = ["/auth/refresh", "/auth/login", "/auth/verify-2fa"];
+const SKIP_REFRESH = ["/auth/refresh", "/auth/login"];
 
 async function tryRefresh(): Promise<boolean> {
   if (!refreshPromise) {
