@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import { AlertCircle, Bell, BookOpen, FileText, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
+import { useRequireRoles } from "@/lib/roles";
+import { useSessionStore } from "@/stores/sessionStore";
+import { AlertCircle, Bell, BookOpen, FileText, LogOut, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
 
@@ -109,7 +112,11 @@ const MENTIONS: Record<string, string> = {
 };
 
 export default function ParentPage() {
+  useRequireRoles(["prt"]);
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const user = useSessionStore((s) => s.user);
+  const clear = useSessionStore((s) => s.clear);
   const [selectedEnfant, setSelectedEnfant] = useState<number | null>(null);
   const [tab, setTab] = useState<"bulletins" | "viescolaire" | "cahier" | "portabilite" | "finances">("bulletins");
   const [showAlertes, setShowAlertes] = useState(false);
@@ -188,19 +195,39 @@ export default function ParentPage() {
       <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-primary-dark">Espace Parent — Jool Secondaire</h1>
-          <p className="text-xs text-muted-foreground">Suivi de la scolarité de vos enfants</p>
+          <p className="text-xs text-muted-foreground">
+            Suivi de la scolarité de vos enfants{user?.first_name ? ` — ${user.first_name}` : ""}
+          </p>
         </div>
-        <button
-          onClick={() => setShowAlertes((v) => !v)}
-          className="relative flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
-        >
-          <Bell className="w-4 h-4" /> Alertes
-          {nonLues && nonLues.non_lues > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 rounded-full bg-red-600 text-white text-[10px] px-1.5 py-0.5">
-              {nonLues.non_lues}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAlertes((v) => !v)}
+            className="relative flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            <Bell className="w-4 h-4" /> Alertes
+            {nonLues && nonLues.non_lues > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 rounded-full bg-red-600 text-white text-[10px] px-1.5 py-0.5">
+                {nonLues.non_lues}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                await api.post("/auth/logout");
+              } catch {
+                // cookie nettoyé côté client de toute façon
+              }
+              clear();
+              queryClient.clear();
+              router.push("/login");
+              router.refresh();
+            }}
+            className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:text-red-600"
+          >
+            <LogOut className="w-4 h-4" /> Déconnexion
+          </button>
+        </div>
       </header>
 
       {showAlertes && (

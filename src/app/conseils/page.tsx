@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { FileText, PenLine, CheckCircle2, Lock, ScrollText } from "lucide-react";
 
 interface Classe {
@@ -55,6 +56,7 @@ const DECISIONS = [
 ];
 
 export default function ConseilsPage() {
+  useRequireRoles(["owner", "adm"]);
   const queryClient = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [selected, setSelected] = useState<Conseil | null>(null);

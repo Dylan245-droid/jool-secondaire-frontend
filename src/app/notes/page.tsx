@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { useState, useEffect } from "react";
 import { Save } from "lucide-react";
 
@@ -49,6 +50,7 @@ const TYPES = [
 ];
 
 export default function NotesPage() {
+  useRequireRoles(["owner", "adm", "tch"]);
   const qc = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [trimestreId, setTrimestreId] = useState("");

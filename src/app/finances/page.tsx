@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { Coins, Download, Plus, Trash2, Wallet } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
@@ -79,6 +80,7 @@ const MODES = [
 const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
 
 export default function FinancesPage() {
+  useRequireRoles(["owner", "adm"]);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"frais" | "encaissement" | "impayes">("frais");
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);

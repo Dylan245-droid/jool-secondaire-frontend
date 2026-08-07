@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { AlertTriangle, BookOpen, Check, UserX } from "lucide-react";
 
 interface Classe {
@@ -90,6 +91,7 @@ const TYPES_SANCTION = [
 ];
 
 export default function VieScolairePage() {
+  useRequireRoles(["owner", "adm", "tch"]);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"absences" | "sanctions" | "cahier">("absences");
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);

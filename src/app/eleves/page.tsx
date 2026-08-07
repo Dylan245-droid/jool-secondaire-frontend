@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { useState } from "react";
 import { ArrowRightLeft, Users } from "lucide-react";
 
@@ -32,6 +33,7 @@ const STATUTS: Record<string, string> = {
 };
 
 export default function ElevesPage() {
+  useRequireRoles(["owner", "adm"]);
   const qc = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [statut, setStatut] = useState("active");

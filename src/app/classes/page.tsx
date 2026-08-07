@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { Copy, Download, Upload, Users, Plus, QrCode, History } from "lucide-react";
 
 interface Niveau {
@@ -54,6 +55,7 @@ interface ExportPortabilite {
 }
 
 export default function ClassesPage() {
+  useRequireRoles(["owner", "adm", "tch"]);
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);

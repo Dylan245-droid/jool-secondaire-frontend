@@ -4,8 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
+import { useRequireRoles } from "@/lib/roles";
 import { useSessionStore } from "@/stores/sessionStore";
-import { AlertTriangle, Coins, GraduationCap, LogOut, TrendingUp, Users } from "lucide-react";
+import { AlertTriangle, Coins, GraduationCap, TrendingUp, Users } from "lucide-react";
 
 interface StatsGlobales {
   effectifs: { total: number; classes: Record<string, number> };
@@ -53,6 +54,7 @@ const MENTIONS_LABELS: Record<string, string> = {
 const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
 
 export default function DashboardPage() {
+  useRequireRoles(["owner", "adm", "tch"]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useSessionStore((s) => s.user);
@@ -97,12 +99,6 @@ export default function DashboardPage() {
                 : user?.email}
             </p>
           </div>
-          <button
-            onClick={logout}
-            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 hover:text-red-600"
-          >
-            <LogOut className="w-4 h-4" /> Déconnexion
-          </button>
         </header>
 
         {isLoading ? (
@@ -152,19 +148,21 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">Encaissé / Dû</p>
-                  <Coins className="w-4 h-4 text-amber-600" />
+              {user?.role !== "tch" && (
+                <div className="bg-white rounded-lg border border-gray-200 p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Encaissé / Dû</p>
+                    <Coins className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-primary-dark">
+                    {fmt(stats?.finances.encaisse ?? 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    recouvrement : {stats?.finances.taux_recouvrement ?? 0}% — reste{" "}
+                    {fmt(stats?.finances.reste ?? 0)}
+                  </p>
                 </div>
-                <p className="text-3xl font-bold text-primary-dark">
-                  {fmt(stats?.finances.encaisse ?? 0)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  recouvrement : {stats?.finances.taux_recouvrement ?? 0}% — reste{" "}
-                  {fmt(stats?.finances.reste ?? 0)}
-                </p>
-              </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
