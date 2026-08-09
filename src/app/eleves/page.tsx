@@ -76,7 +76,7 @@ export default function ElevesPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Élèves</h2>
@@ -128,14 +128,14 @@ export default function ElevesPage() {
           </select>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg border border-card-border shadow-card overflow-hidden">
           {isLoading ? (
             <p className="text-sm text-muted-foreground p-5">Chargement…</p>
           ) : inscriptions?.length === 0 ? (
             <p className="text-sm text-muted-foreground p-5">Aucun élève.</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-muted text-left text-xs uppercase text-gray-500">
                 <tr>
                   <th className="py-2 px-4">Matricule</th>
                   <th className="py-2 px-4">Nom</th>
@@ -150,7 +150,7 @@ export default function ElevesPage() {
               </thead>
               <tbody>
                 {inscriptions?.map((ins) => (
-                  <tr key={ins.id} className="border-t border-gray-100">
+                  <tr key={ins.id} className="border-t border-card-border">
                     <td className="py-2 px-4 font-mono text-xs">{ins.matricule ?? "—"}</td>
                     <td className="py-2 px-4">{ins.etudiant_nom}</td>
                     <td className="py-2 px-4">{ins.etudiant_prenom}</td>
@@ -163,7 +163,7 @@ export default function ElevesPage() {
                         className={`px-2 py-0.5 rounded-full text-xs ${
                           ins.statut === "active"
                             ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
+                            : "bg-muted text-gray-600"
                         }`}
                       >
                         {STATUTS[ins.statut] ?? ins.statut}

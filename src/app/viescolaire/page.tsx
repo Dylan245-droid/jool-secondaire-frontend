@@ -204,7 +204,7 @@ export default function VieScolairePage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Vie scolaire</h2>
           <p className="text-sm text-muted-foreground">Absences, retards, sanctions et cahier de textes</p>
@@ -246,7 +246,7 @@ export default function VieScolairePage() {
 
         {selectedClasse && tab === "absences" && (
           <div className="space-y-6">
-            <section className="bg-white rounded-lg border border-gray-200 p-5">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <UserX className="w-4 h-4 text-red-500" /> Signaler absences / retards
               </h3>
@@ -283,10 +283,10 @@ export default function VieScolairePage() {
                 </button>
               </div>
               {msg && <p className="text-sm mb-3 rounded-md bg-secondary px-3 py-2 text-primary-dark">{msg}</p>}
-              <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+              <ul className="divide-y divide-card-border max-h-80 overflow-y-auto">
                 {inscriptions?.map((i) => (
                   <li key={i.id}>
-                    <label className="flex items-center gap-3 py-2 text-sm cursor-pointer hover:bg-gray-50 px-2 rounded">
+                    <label className="flex items-center gap-3 py-2 text-sm cursor-pointer hover:bg-muted px-2 rounded">
                       <input
                         type="checkbox"
                         checked={coche.has(i.id)}
@@ -305,7 +305,7 @@ export default function VieScolairePage() {
               </ul>
             </section>
 
-            <section className="bg-white rounded-lg border border-gray-200 p-5">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4">Assiduité de la classe</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -320,7 +320,7 @@ export default function VieScolairePage() {
                   </thead>
                   <tbody>
                     {assiduite?.map((a) => (
-                      <tr key={a.inscription_id} className="border-b border-gray-100">
+                      <tr key={a.inscription_id} className="border-b border-card-border">
                         <td className="py-2">
                           {a.eleve_nom} {a.eleve_prenom}
                         </td>
@@ -343,9 +343,9 @@ export default function VieScolairePage() {
               </div>
             </section>
 
-            <section className="bg-white rounded-lg border border-gray-200 p-5">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4">Dernières déclarations</h3>
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-card-border">
                 {absences?.slice(0, 10).map((a) => (
                   <li key={a.id} className="flex items-center justify-between py-2 text-sm">
                     <span>
@@ -385,7 +385,7 @@ export default function VieScolairePage() {
 
         {selectedClasse && tab === "sanctions" && (
           <div className="space-y-6">
-            <section className="bg-white rounded-lg border border-gray-200 p-5 max-w-xl">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5 max-w-xl">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" /> Prononcer une sanction (direction)
               </h3>
@@ -449,9 +449,9 @@ export default function VieScolairePage() {
               </div>
             </section>
 
-            <section className="bg-white rounded-lg border border-gray-200 p-5">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4">Sanctions ({sanctions?.length ?? 0})</h3>
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-card-border">
                 {sanctions?.map((s) => (
                   <li key={s.id} className="flex items-center justify-between py-2 text-sm">
                     <div>
@@ -470,7 +470,7 @@ export default function VieScolairePage() {
                       ) : (
                         <button
                           onClick={() => leverSanction.mutate(s.id)}
-                          className="text-xs rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50"
+                          className="text-xs rounded-md border border-gray-300 px-3 py-1 hover:bg-muted"
                         >
                           Lever
                         </button>
@@ -487,7 +487,7 @@ export default function VieScolairePage() {
         )}
 
         {selectedClasse && tab === "cahier" && (
-          <div className="bg-white rounded-lg border border-gray-200 p-5">
+          <div className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-1 flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-blue-600" /> Cahier de textes
             </h3>
@@ -497,7 +497,7 @@ export default function VieScolairePage() {
             {seances?.length === 0 && (
               <p className="text-sm text-muted-foreground">Aucune séance saisie pour cette classe.</p>
             )}
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-card-border">
               {seances?.map((s) => (
                 <li key={s.id} className="py-3">
                   <div className="flex items-center justify-between">

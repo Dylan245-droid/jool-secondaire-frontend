@@ -17,7 +17,7 @@ export const ROLE_LABELS: Record<string, string> = {
 interface MeResponse {
   success: boolean;
   data: {
-    account: { id: number; email: string; first_name?: string; last_name?: string };
+    account: { id: number; email: string; first_name?: string; last_name?: string; is_superuser?: boolean };
     memberships: Array<{ role: string; structure: { id: number; name: string }; is_active: boolean }>;
   };
 }
@@ -44,6 +44,7 @@ export function useSessionUser(): SessionUser | null {
           role: (active?.role ?? "adm") as Role,
           structureId: active?.structure.id,
           structureName: active?.structure.name,
+          isSuperuser: Boolean(me.data.account.is_superuser),
         });
       })
       .catch(() => {
@@ -68,6 +69,21 @@ export function useRequireRoles(allowed: Role[]) {
     router.replace(fallback);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
+
+  return user;
+}
+
+/** Garde de la super administration : seul un superuser peut accéder. */
+export function useRequireSuperuser() {
+  const user = useSessionUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.isSuperuser) return;
+    router.replace("/dashboard");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.isSuperuser]);
 
   return user;
 }

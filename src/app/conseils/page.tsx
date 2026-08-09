@@ -130,7 +130,7 @@ export default function ConseilsPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Conseils de classe</h2>
@@ -160,17 +160,17 @@ export default function ConseilsPage() {
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white rounded-lg border border-gray-200 p-5">
+          <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-4">Conseils ({conseils?.length ?? 0})</h3>
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Chargement…</p>
             ) : (
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-card-border">
                 {conseils?.map((c) => (
                   <li key={c.id}>
                     <button
                       onClick={() => setSelected(c)}
-                      className={`w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-gray-50 ${
+                      className={`w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-muted ${
                         selected?.id === c.id ? "bg-secondary" : ""
                       }`}
                     >
@@ -181,7 +181,7 @@ export default function ConseilsPage() {
                         c.statut === "valide" ? "bg-green-100 text-green-700"
                         : c.statut === "cloture" ? "bg-amber-100 text-amber-700"
                         : c.statut === "en_cours" ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-600"
+                        : "bg-muted text-gray-600"
                       }`}>
                         {STATUTS[c.statut]}
                       </span>
@@ -195,7 +195,7 @@ export default function ConseilsPage() {
             )}
           </section>
 
-          <section className="bg-white rounded-lg border border-gray-200 p-5">
+          <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-4">
               {selected ? `Conseil du ${selected.date} — ${STATUTS[selected.statut]}` : "Détail du conseil"}
             </h3>
@@ -271,7 +271,7 @@ export default function ConseilsPage() {
                   )}
                   {(selected.statut === "cloture" || selected.statut === "valide") && (
                     <a
-                      href={`${process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2"}/secondaire/conseils/${selected.id}/pv`}
+                      href={`${process.env.NEXT_PUBLIC_API_BASE || "/api/v2"}/secondaire/conseils/${selected.id}/pv`}
                       target="_blank"
                       className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700"
                     >
@@ -294,7 +294,7 @@ export default function ConseilsPage() {
                       </thead>
                       <tbody>
                         {decisions?.map((d) => (
-                          <tr key={d.id} className="border-b border-gray-100">
+                          <tr key={d.id} className="border-b border-card-border">
                             <td className="py-2 pr-3">{d.rang}</td>
                             <td className="py-2 pr-3 font-medium">{d.moyenne_generale.toFixed(2)}</td>
                             <td className="py-2 pr-3 capitalize">{d.mention}</td>
@@ -303,7 +303,7 @@ export default function ConseilsPage() {
                                 value={d.decision}
                                 disabled={selected.statut === "cloture" || selected.statut === "valide"}
                                 onChange={(e) => changerDecision(d.id, e.target.value)}
-                                className="rounded-md border border-gray-300 px-2 py-1 text-xs disabled:bg-gray-50"
+                                className="rounded-md border border-gray-300 px-2 py-1 text-xs disabled:bg-muted"
                               >
                                 {DECISIONS.map((o) => (
                                   <option key={o.value} value={o.value}>{o.label}</option>

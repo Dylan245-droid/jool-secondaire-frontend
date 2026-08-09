@@ -131,7 +131,7 @@ export default function NotesPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Notes</h2>
           <p className="text-sm text-muted-foreground">
@@ -213,7 +213,7 @@ export default function NotesPage() {
           </p>
         )}
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg border border-card-border shadow-card overflow-hidden">
           {!classeId || !trimestreId || !matiereId ? (
             <p className="text-sm text-muted-foreground p-5">
               Sélectionnez une classe, un trimestre et une matière.
@@ -222,7 +222,7 @@ export default function NotesPage() {
             <p className="text-sm text-muted-foreground p-5">Aucun élève actif dans cette classe.</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-muted text-left text-xs uppercase text-gray-500">
                 <tr>
                   <th className="py-2 px-4">Élève</th>
                   <th className="py-2 px-4 w-40">Note /20</th>
@@ -230,7 +230,7 @@ export default function NotesPage() {
               </thead>
               <tbody>
                 {inscriptions?.map((i) => (
-                  <tr key={i.id} className="border-t border-gray-100">
+                  <tr key={i.id} className="border-t border-card-border">
                     <td className="py-2 px-4">
                       {i.etudiant_nom} {i.etudiant_prenom}
                     </td>

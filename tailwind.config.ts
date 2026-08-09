@@ -12,24 +12,43 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        card: "var(--card)",
+        "card-border": "var(--card-border)",
         primary: {
-          DEFAULT: "#16a34a",
+          DEFAULT: "var(--violet)",
           foreground: "#ffffff",
-          light: "#22c55e",
-          dark: "#15803d",
+          light: "#f3e8fa",
+          dark: "var(--violet-dark)",
         },
         secondary: {
-          DEFAULT: "#dcfce7",
-          foreground: "#166534",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--foreground)",
         },
+        violet: {
+          DEFAULT: "var(--violet)",
+          dark: "var(--violet-dark)",
+        },
+        rose: "var(--rose)",
+        turquoise: "var(--turquoise)",
+        noir: "var(--noir)",
         accent: {
-          DEFAULT: "#f59e0b",
+          DEFAULT: "var(--rose)",
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "#f4f4f5",
-          foreground: "#71717a",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
+        border: "var(--border)",
+      },
+      fontFamily: {
+        sans: ["'Space Grotesk'", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "monospace"],
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        brutal: "var(--shadow-brutal)",
+        "brutal-sm": "var(--shadow-brutal-sm)",
       },
       borderRadius: {
         lg: "var(--radius)",

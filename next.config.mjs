@@ -8,6 +8,16 @@ const withPWA = withPWAInit({
 });
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:8007";
+    return [
+      {
+        source: "/api/v2/:path*",
+        destination: `${backendUrl}/api/v2/:path*`,
+      },
+    ];
+  },
+};
 
 export default withPWA(nextConfig);

@@ -8,7 +8,7 @@ import { useRequireRoles } from "@/lib/roles";
 import { useSessionStore } from "@/stores/sessionStore";
 import { AlertCircle, Bell, BookOpen, FileText, LogOut, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api/v2";
 
 interface Enfant {
   inscription_id: number;
@@ -191,8 +191,8 @@ export default function ParentPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-muted">
+      <header className="bg-white border-b border-border px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-primary-dark">Espace Parent — Jool Secondaire</h1>
           <p className="text-xs text-muted-foreground">
@@ -202,7 +202,7 @@ export default function ParentPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAlertes((v) => !v)}
-            className="relative flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
+            className="relative flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-muted"
           >
             <Bell className="w-4 h-4" /> Alertes
             {nonLues && nonLues.non_lues > 0 && (
@@ -239,7 +239,7 @@ export default function ParentPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-card-border">
               {alertes?.map((a) => (
                 <li
                   key={a.id}
@@ -276,8 +276,8 @@ export default function ParentPage() {
                 setSelectedEnfant(e.inscription_id);
                 setTab("bulletins");
               }}
-              className={`text-left bg-white rounded-lg border p-5 hover:shadow-md transition-shadow ${
-                selectedEnfant === e.inscription_id ? "border-primary ring-1 ring-primary" : "border-gray-200"
+              className={`text-left bg-card rounded-lg border border-card-border shadow-card p-5 hover:shadow-md transition-shadow ${
+                selectedEnfant === e.inscription_id ? "border-primary ring-1 ring-primary" : "border-border"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
@@ -295,15 +295,15 @@ export default function ParentPage() {
                 </span>
                 <span
                   className={`rounded-full px-2 py-0.5 ${
-                    e.absences_non_justifiees > 0 ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-700"
+                    e.absences_non_justifiees > 0 ? "bg-red-100 text-red-800" : "bg-muted text-gray-700"
                   }`}
                 >
                   {e.absences_non_justifiees} abs. non just.
                 </span>
-                <span className="rounded-full bg-gray-100 text-gray-700 px-2 py-0.5">{e.retards} retard(s)</span>
+                <span className="rounded-full bg-muted text-gray-700 px-2 py-0.5">{e.retards} retard(s)</span>
                 <span
                   className={`rounded-full px-2 py-0.5 ${
-                    e.sanctions > 0 ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-700"
+                    e.sanctions > 0 ? "bg-amber-100 text-amber-800" : "bg-muted text-gray-700"
                   }`}
                 >
                   {e.sanctions} sanction{e.sanctions > 1 ? "s" : ""}
@@ -314,7 +314,7 @@ export default function ParentPage() {
         </div>
 
         {!isLoading && enfants?.length === 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <div className="bg-card rounded-lg border border-card-border shadow-card p-8 text-center">
             <p className="text-sm text-muted-foreground">
               Aucun enfant lié à ce compte. Contactez l&apos;administration de l&apos;établissement.
             </p>
@@ -344,7 +344,7 @@ export default function ParentPage() {
             </div>
 
             {tab === "bulletins" && (
-              <section className="bg-white rounded-lg border border-gray-200 p-5">
+              <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-green-600" /> Bulletins signés
                 </h3>
@@ -355,7 +355,7 @@ export default function ParentPage() {
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {bulletins?.map((b) => (
-                    <div key={b.id} className="rounded-lg border border-gray-200 p-4">
+                    <div key={b.id} className="rounded-lg border border-border p-4">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-semibold">Bulletin {b.trimestre}</p>
                         <span
@@ -399,7 +399,7 @@ export default function ParentPage() {
 
             {tab === "viescolaire" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <UserX className="w-4 h-4 text-red-500" /> Absences & retards
                     {viescolaire?.trimestre_courant && (
@@ -411,7 +411,7 @@ export default function ParentPage() {
                   {viescolaire?.absences.length === 0 && (
                     <p className="text-sm text-muted-foreground">Aucune absence signalée.</p>
                   )}
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-card-border">
                     {viescolaire?.absences.map((a) => (
                       <li key={a.id} className="py-2 flex items-center justify-between text-sm">
                         <span>
@@ -440,14 +440,14 @@ export default function ParentPage() {
                   )}
                 </section>
 
-                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-amber-500" /> Sanctions
                   </h3>
                   {viescolaire?.sanctions.length === 0 && (
                     <p className="text-sm text-muted-foreground">Aucune sanction.</p>
                   )}
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-card-border">
                     {viescolaire?.sanctions.map((s) => (
                       <li key={s.id} className="py-2 text-sm">
                         <p>
@@ -468,7 +468,7 @@ export default function ParentPage() {
             )}
 
             {tab === "cahier" && (
-              <section className="bg-white rounded-lg border border-gray-200 p-5">
+              <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                 <h3 className="font-semibold mb-1 flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-blue-600" /> Cahier de textes
                   <span className="text-xs font-normal text-muted-foreground">
@@ -481,7 +481,7 @@ export default function ParentPage() {
                 {cahier?.seances.length === 0 && (
                   <p className="text-sm text-muted-foreground">Aucune séance publiée pour le moment.</p>
                 )}
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-card-border">
                   {cahier?.seances.map((s) => (
                     <li key={s.id} className="py-3">
                       <div className="flex items-center justify-between">
@@ -509,7 +509,7 @@ export default function ParentPage() {
             )}
 
             {tab === "portabilite" && (
-              <section className="bg-white rounded-lg border border-gray-200 p-5">
+              <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                 <h3 className="font-semibold mb-1 flex items-center gap-2">
                   <QrCode className="w-4 h-4 text-purple-600" /> Portabilité scolaire
                 </h3>
@@ -517,7 +517,7 @@ export default function ParentPage() {
                   Autorisez le transfert du dossier scolaire de votre enfant (parcours, bulletins,
                   examens, vie scolaire) vers un autre établissement du réseau, via un QR code signé.
                 </p>
-                <div className="rounded-lg border border-gray-200 p-4 max-w-xl">
+                <div className="rounded-lg border border-border p-4 max-w-xl">
                   <div className="flex items-center justify-between">
                     <p className="text-sm">
                       <span className="font-medium">Consentement actuel :</span>{" "}
@@ -557,7 +557,7 @@ export default function ParentPage() {
                       <img
                         src={portabilite.qr_data_url}
                         alt="QR portabilité"
-                        className="w-40 h-40 border border-gray-200 rounded-lg"
+                        className="w-40 h-40 border border-border rounded-lg"
                       />
                       <p className="text-xs text-muted-foreground mt-2 break-all">
                         <code className="text-[10px]">{portabilite.export_url}</code>
@@ -570,12 +570,12 @@ export default function ParentPage() {
 
             {tab === "finances" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <Wallet className="w-4 h-4 text-amber-600" /> Situation financière
                   </h3>
                   <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="rounded-lg bg-gray-50 p-3 text-center">
+                    <div className="rounded-lg bg-muted p-3 text-center">
                       <p className="text-xs text-muted-foreground">Dû</p>
                       <p className="text-lg font-bold">{finances?.total_du.toLocaleString("fr-FR")} F</p>
                     </div>
@@ -593,7 +593,7 @@ export default function ParentPage() {
                     </div>
                   </div>
                   <p className="text-sm font-medium mb-2">Frais de l&apos;année</p>
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-card-border">
                     {finances?.frais.map((f, idx) => (
                       <li key={idx} className="flex items-center justify-between py-2 text-sm">
                         <span>{f.label}</span>
@@ -606,9 +606,9 @@ export default function ParentPage() {
                   </ul>
                 </section>
 
-                <section className="bg-white rounded-lg border border-gray-200 p-5">
+                <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
                   <h3 className="font-semibold mb-4">Paiements enregistrés</h3>
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-card-border">
                     {finances?.paiements.map((p) => (
                       <li key={p.id} className="py-2 text-sm">
                         <div className="flex items-center justify-between">
@@ -638,7 +638,7 @@ export default function ParentPage() {
               </div>
             )}
 
-            <section className="bg-white rounded-lg border border-gray-200 p-5">
+            <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-purple-600" /> Messages à l&apos;établissement
               </h3>
@@ -664,7 +664,7 @@ export default function ParentPage() {
                   {envoyerMessage.isPending ? "Envoi…" : "Envoyer"}
                 </button>
               </div>
-              <ul className="divide-y divide-gray-100 max-w-2xl">
+              <ul className="divide-y divide-card-border max-w-2xl">
                 {messages?.map((m) => (
                   <li key={m.id} className="py-3">
                     <div className="flex items-center justify-between">

@@ -48,7 +48,7 @@ interface Bulletin {
   secret_code: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api/v2";
 
 export default function BulletinsPage() {
   useRequireRoles(["owner", "adm"]);
@@ -177,7 +177,7 @@ export default function BulletinsPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Bulletins</h2>
           <p className="text-sm text-muted-foreground">
@@ -234,7 +234,7 @@ export default function BulletinsPage() {
             <button
               onClick={() => generer.mutate()}
               disabled={!classeId || !trimestreId || generer.isPending}
-              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-muted disabled:opacity-40"
             >
               <FilePlus2 className="w-4 h-4" />
               {generer.isPending ? "Génération…" : "Générer bulletins"}
@@ -253,19 +253,19 @@ export default function BulletinsPage() {
 
         {trimestre && (
           <div className="mb-6 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full px-2 py-0.5 bg-gray-100 text-gray-600">
+            <span className="rounded-full px-2 py-0.5 bg-muted text-gray-600">
               Notes {trimestre.notes_cloturees ? "clôturées" : "ouvertes"}
             </span>
-            <span className="rounded-full px-2 py-0.5 bg-gray-100 text-gray-600">
+            <span className="rounded-full px-2 py-0.5 bg-muted text-gray-600">
               Moyennes {trimestre.moyennes_calculees ? "calculées" : "non calculées"}
             </span>
-            <span className="rounded-full px-2 py-0.5 bg-gray-100 text-gray-600">
+            <span className="rounded-full px-2 py-0.5 bg-muted text-gray-600">
               Bulletins {trimestre.bulletins_emises ? "émis" : "non émis"}
             </span>
           </div>
         )}
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg border border-card-border shadow-card overflow-hidden">
           {!classeId || !trimestreId ? (
             <p className="text-sm text-muted-foreground p-5">
               Sélectionnez une classe et un trimestre.
@@ -278,7 +278,7 @@ export default function BulletinsPage() {
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-muted text-left text-xs uppercase text-gray-500">
                 <tr>
                   <th className="py-2 px-4">Rang</th>
                   <th className="py-2 px-4">Élève</th>
@@ -291,7 +291,7 @@ export default function BulletinsPage() {
                 {tableau?.map((l) => {
                   const b = bulletins[l.inscription_id];
                   return (
-                    <tr key={l.inscription_id} className="border-t border-gray-100 align-top">
+                    <tr key={l.inscription_id} className="border-t border-card-border align-top">
                       <td className="py-2 px-4">{l.rang ?? "—"}</td>
                       <td className="py-2 px-4">
                         {l.nom} {l.prenom}
@@ -300,7 +300,7 @@ export default function BulletinsPage() {
                             {l.moyennes_matieres.map((m) => (
                               <span
                                 key={m.matiere}
-                                className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600"
+                                className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-gray-600"
                                 title={`Coef ${m.coefficient}`}
                               >
                                 {m.matiere} {m.moyenne}
@@ -357,7 +357,7 @@ export default function BulletinsPage() {
                             )}
                             <button
                               onClick={() => telechargerPdf(b.id)}
-                              className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                              className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-muted"
                             >
                               <Download className="w-3 h-3" /> PDF
                             </button>

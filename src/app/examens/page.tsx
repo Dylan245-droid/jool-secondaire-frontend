@@ -14,8 +14,16 @@ interface Examen {
   annee: number;
   date_debut_epreuves: string;
   date_fin_epreuves: string;
+  series_concernees?: string[];
   is_publie: boolean;
   candidats: number;
+}
+
+interface Serie {
+  id: number;
+  code: string;
+  label: string;
+  niveau_id: number;
 }
 
 interface Candidat {
@@ -49,10 +57,12 @@ export default function ExamensPage() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Examen | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ type: "brevet", session: "normale", annee: 2026, date_debut_epreuves: "", date_fin_epreuves: "" });
+  const [form, setForm] = useState({ type: "brevet", session: "normale", annee: 2026, date_debut_epreuves: "", date_fin_epreuves: "", series: [] as string[] });
   const [error, setError] = useState("");
 
   const { data: examens } = useQuery({ queryKey: ["examens"], queryFn: () => api.get<Examen[]>("/secondaire/examens") });
+  const { data: seriesRef } = useQuery({ queryKey: ["series-ref"], queryFn: () => api.get<Serie[]>("/secondaire/series") });
+  const seriesCodes = Array.from(new Set((seriesRef ?? []).map((s) => s.code))).sort();
   const { data: candidats } = useQuery({
     queryKey: ["candidats", selected?.id],
     queryFn: () => api.get<Candidat[]>(`/secondaire/examens/${selected!.id}/candidats`),
@@ -78,9 +88,18 @@ export default function ExamensPage() {
   async function creerSession(e: React.FormEvent) {
     e.preventDefault();
     run.mutate(
-      { url: "/secondaire/examens", body: form },
       {
-        onSuccess: () => setShowForm(false),
+        url: "/secondaire/examens",
+        body: {
+          ...form,
+          series_concernees: form.type === "bac" ? form.series : [],
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowForm(false);
+          setForm({ type: "brevet", session: "normale", annee: 2026, date_debut_epreuves: "", date_fin_epreuves: "", series: [] });
+        },
       }
     );
   }
@@ -101,12 +120,12 @@ export default function ExamensPage() {
     });
   }
 
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8007/api/v2";
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE || "/api/v2";
 
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Examens officiels</h2>
@@ -125,7 +144,7 @@ export default function ExamensPage() {
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
         {showForm && (
-          <form onSubmit={creerSession} className="mb-8 bg-white rounded-lg border border-gray-200 p-5 max-w-lg space-y-3">
+          <form onSubmit={creerSession} className="mb-8 bg-card rounded-lg border border-card-border shadow-card p-5 max-w-lg space-y-3">
             <h3 className="font-semibold">Créer une session</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -155,6 +174,30 @@ export default function ExamensPage() {
                 <input type="date" value={form.date_fin_epreuves} onChange={(e) => setForm({ ...form, date_fin_epreuves: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
               </div>
             </div>
+            {form.type === "bac" && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Séries concernées</label>
+                <div className="flex flex-wrap gap-2">
+                  {seriesCodes.map((code) => (
+                    <label key={code} className="flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={form.series.includes(code)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            series: e.target.checked
+                              ? [...form.series, code]
+                              : form.series.filter((c) => c !== code),
+                          })
+                        }
+                      />
+                      {code}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <button type="submit" disabled={!form.date_debut_epreuves || !form.date_fin_epreuves || run.isPending} className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
               {run.isPending ? "Création…" : "Créer"}
             </button>
@@ -162,18 +205,23 @@ export default function ExamensPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white rounded-lg border border-gray-200 p-5">
+          <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-4">Sessions ({examens?.length ?? 0})</h3>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-card-border">
               {examens?.map((e) => (
                 <li key={e.id}>
                   <button
                     onClick={() => setSelected(e)}
-                    className={`w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-gray-50 ${selected?.id === e.id ? "bg-secondary" : ""}`}
+                    className={`w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-muted ${selected?.id === e.id ? "bg-secondary" : ""}`}
                   >
                     <span className="text-sm font-medium">
                       {e.type === "brevet" ? "Brevet" : "Baccalauréat"} {e.annee}
                       <span className="text-muted-foreground font-normal"> — {e.session}</span>
+                      {e.series_concernees?.length ? (
+                        <span className="ml-2 text-xs text-muted-foreground font-normal">
+                          ({e.series_concernees.join(", ")})
+                        </span>
+                      ) : null}
                     </span>
                     <span className="flex items-center gap-2 text-xs text-muted-foreground">
                       <GraduationCap className="w-3.5 h-3.5" /> {e.candidats}
@@ -186,7 +234,7 @@ export default function ExamensPage() {
             </ul>
           </section>
 
-          <section className="bg-white rounded-lg border border-gray-200 p-5">
+          <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-4">
               {selected ? `Candidats (${candidats?.length ?? 0})` : "Candidats"}
             </h3>
@@ -220,7 +268,7 @@ export default function ExamensPage() {
                     </thead>
                     <tbody>
                       {candidats?.map((c) => (
-                        <tr key={c.id} className="border-b border-gray-100">
+                        <tr key={c.id} className="border-b border-card-border">
                           <td className="py-2 pr-3 font-mono text-xs">{c.numero_table}</td>
                           <td className="py-2 pr-3">{c.nom} {c.prenom}</td>
                           <td className="py-2 pr-3">{c.classe}</td>

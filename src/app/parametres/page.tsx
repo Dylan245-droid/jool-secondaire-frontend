@@ -117,7 +117,7 @@ export default function ParametresPage() {
     return (
       <div className="flex h-screen overflow-hidden">
         <SidebarNav />
-        <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+        <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
           <p className="text-sm text-muted-foreground">Chargement…</p>
         </main>
       </div>
@@ -127,7 +127,7 @@ export default function ParametresPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <SidebarNav />
-      <main className="flex-1 h-screen overflow-y-auto p-8 bg-gray-50">
+      <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Paramètres</h2>
           <p className="text-sm text-muted-foreground">
@@ -138,7 +138,7 @@ export default function ParametresPage() {
         {msg && <p className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2">{msg}</p>}
         {error && <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
 
-        <section className="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+        <section className="bg-card rounded-lg border border-card-border shadow-card p-5 mb-6">
           <h3 className="font-semibold flex items-center gap-2 mb-4">
             <Building2 className="w-4 h-4 text-primary" /> Établissement
           </h3>
@@ -163,7 +163,7 @@ export default function ParametresPage() {
                       setForm({ ...(form ?? structure), [champ]: e.target.value });
                       setMsg("");
                     }}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-muted disabled:text-gray-500"
                   />
                 </div>
               ))}
@@ -180,10 +180,10 @@ export default function ParametresPage() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg border border-gray-200 p-5">
+        <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-primary" /> Membres de l'établissement
+              <UserPlus className="w-4 h-4 text-primary" /> Membres de l&apos;établissement
             </h3>
             {isOwner && (
               <button
@@ -196,7 +196,7 @@ export default function ParametresPage() {
           </div>
 
           {isOwner && showForm && (
-            <div className="mb-4 rounded-md border border-gray-200 bg-gray-50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="mb-4 rounded-md border border-border bg-muted p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
               <input
                 placeholder="Email"
                 value={newMembre.email}
@@ -244,7 +244,7 @@ export default function ParametresPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-muted-foreground border-b border-gray-200">
+                <tr className="text-left text-xs text-muted-foreground border-b border-border">
                   <th className="py-2 pr-4 font-medium">Nom</th>
                   <th className="py-2 pr-4 font-medium">Email</th>
                   <th className="py-2 pr-4 font-medium">Rôle</th>
@@ -252,7 +252,7 @@ export default function ParametresPage() {
                   {isOwner && <th className="py-2 font-medium">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-card-border">
                 {(membres ?? []).map((m) => (
                   <tr key={m.membership_id}>
                     <td className="py-2 pr-4">

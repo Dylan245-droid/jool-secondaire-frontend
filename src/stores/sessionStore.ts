@@ -13,6 +13,7 @@ export interface SessionUser {
   role: Role
   structureId?: number
   structureName?: string
+  isSuperuser?: boolean
 }
 
 interface SessionState {
