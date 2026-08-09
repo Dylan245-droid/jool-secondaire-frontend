@@ -131,7 +131,23 @@ export default function StructureDetailPage() {
   const [cycle, setCycle] = useState("monthly");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentRef, setPaymentRef] = useState("");
+  const [convMethod, setConvMethod] = useState("CASH");
+  const [convRef, setConvRef] = useState("");
   const [msg, setMsg] = useState("");
+
+  const activateSub = useMutation({
+    mutationFn: (subId: number) =>
+      api.post<{ message?: string }>(`/platform/subscriptions/${subId}/activate`, {
+        payment_method: convMethod,
+        payment_reference: convRef,
+        send_email: true,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["platform-structure", id] });
+      setMsg(typeof res?.message === "string" ? res.message : "Abonnement activé, facture et reçu envoyés.");
+    },
+    onError: (e) => setMsg(e instanceof ApiError ? e.message : "Erreur"),
+  });
 
   const createSub = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -345,7 +361,7 @@ export default function StructureDetailPage() {
                     <div className="pt-2">
                       <p className="text-xs text-muted-foreground mb-2">
                         Essai gratuit de 14 jours{usage.trial_end_date ? ` — fin le ${new Date(usage.trial_end_date).toLocaleDateString("fr-FR")}` : ""}.
-                        La conversion (facturation) se fait via « Créer un abonnement » ci-dessous.
+                        La conversion (facturation) se fait ci-dessous en activant cet abonnement.
                       </p>
                       <Button
                         variant="outline"
@@ -355,6 +371,37 @@ export default function StructureDetailPage() {
                       >
                         Prolonger l&apos;essai (+7 jours)
                       </Button>
+                    </div>
+                  )}
+                  {!structure.current_subscription.is_active && !structure.current_subscription.plan_is_free && (
+                    <div className="pt-3 border-t border-card-border space-y-3">
+                      <p className="text-xs text-muted-foreground">
+                        Conversion : activez cet abonnement ({CYCLE_LABELS[structure.current_subscription.billing_cycle] ?? structure.current_subscription.billing_cycle},{" "}
+                        {structure.current_subscription.snapshot_price === 0
+                          ? "0 FCFA (gratuit)"
+                          : fmt(structure.current_subscription.snapshot_price)}
+                        ). La facture et le reçu seront générés et envoyés immédiatement.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <select className="jool-input w-auto" value={convMethod} onChange={(e) => setConvMethod(e.target.value)}>
+                          <option value="CASH">Espèces</option>
+                          <option value="MOBILE_MONEY">Mobile Money</option>
+                          <option value="BANK_TRANSFER">Virement bancaire</option>
+                          <option value="CHEQUE">Chèque</option>
+                        </select>
+                        <input
+                          className="jool-input w-48"
+                          placeholder="Référence de paiement"
+                          value={convRef}
+                          onChange={(e) => setConvRef(e.target.value)}
+                        />
+                        <Button
+                          onClick={() => activateSub.mutate(structure.current_subscription!.id)}
+                          disabled={activateSub.isPending}
+                        >
+                          {activateSub.isPending ? "Activation…" : "Activer l'abonnement (facturation)"}
+                        </Button>
+                      </div>
                     </div>
                   )}
                   {structure.current_subscription.is_active && (
@@ -381,9 +428,13 @@ export default function StructureDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Créer un abonnement</CardTitle>
+              <CardTitle>Changer de plan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Crée un nouvel abonnement (activation immédiate) qui remplace l&apos;abonnement courant —
+                pour un passage à un plan supérieur, un changement de cycle ou un rattrapage après essai.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="jool-label">Plan</label>
