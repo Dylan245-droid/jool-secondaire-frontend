@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles, useSessionUser } from "@/lib/roles";
+import { useRequireCapabilities, useRequireRoles, useSessionUser } from "@/lib/roles";
 import { Copy, Download, Upload, Users, Plus, QrCode, History, RefreshCw, Play } from "lucide-react";
 
 interface Niveau {
@@ -89,6 +89,7 @@ interface ExportPortabilite {
 
 export default function ClassesPage() {
   useRequireRoles(["owner", "adm", "tch"]);
+  useRequireCapabilities("scolarite");
   const sessionUser = useSessionUser();
   const canGerePromotion = sessionUser?.role === "owner" || sessionUser?.role === "adm";
   const queryClient = useQueryClient();

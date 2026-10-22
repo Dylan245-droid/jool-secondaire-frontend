@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useRequireRoles } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
 import { useSessionStore } from "@/stores/sessionStore";
 import { AlertCircle, Bell, BookOpen, FileText, LogOut, MessageSquare, QrCode, UserX, Wallet, X } from "lucide-react";
 
@@ -452,7 +453,7 @@ export default function ParentPage() {
                       <li key={s.id} className="py-2 text-sm">
                         <p>
                           <span className="font-medium">{s.type}</span>
-                          <span className="text-muted-foreground"> le {s.date_sanction}</span>
+                          <span className="text-muted-foreground"> le {fmtDate(s.date_sanction)}</span>
                           {s.levee && (
                             <span className="ml-2 text-xs rounded-full bg-green-100 text-green-800 px-2 py-0.5">
                               levée

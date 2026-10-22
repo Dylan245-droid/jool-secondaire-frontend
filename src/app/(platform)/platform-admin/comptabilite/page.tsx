@@ -356,8 +356,8 @@ export default function ComptabilitePage() {
             )}
             <div className="space-y-4 mt-4">
               <div>
-                <label className="jool-label">Mode de paiement</label>
-                <select className="jool-input" value={method} onChange={(e) => setMethod(e.target.value)}>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Mode de paiement</label>
+                <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={method} onChange={(e) => setMethod(e.target.value)}>
                   <option value="CASH">Espèces</option>
                   <option value="MOBILE_MONEY">Mobile Money</option>
                   <option value="BANK_TRANSFER">Virement bancaire</option>
@@ -365,8 +365,8 @@ export default function ComptabilitePage() {
                 </select>
               </div>
               <div>
-                <label className="jool-label">Référence</label>
-                <input className="jool-input" value={reference} onChange={(e) => setReference(e.target.value)} />
+                <label className="block text-xs font-medium text-gray-600 mb-1">Référence</label>
+                <input className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={reference} onChange={(e) => setReference(e.target.value)} />
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">

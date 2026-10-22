@@ -39,6 +39,7 @@ const ROLE_OPTIONS = [
 export default function ParametresPage() {
   const user = useRequireRoles(["owner", "adm"]);
   const isOwner = user?.role === "owner";
+  const canGererMembres = user?.role === "owner" || user?.role === "adm";
   const qc = useQueryClient();
 
   const [form, setForm] = useState<Structure | null>(null);
@@ -131,7 +132,7 @@ export default function ParametresPage() {
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Paramètres</h2>
           <p className="text-sm text-muted-foreground">
-            Établissement et membres — {isOwner ? "vous êtes propriétaire" : "lecture seule (propriétaire requis)"}
+            Établissement et membres — modification de l&apos;établissement réservée à l&apos;administrateur
           </p>
         </header>
 
@@ -185,7 +186,7 @@ export default function ParametresPage() {
             <h3 className="font-semibold flex items-center gap-2">
               <UserPlus className="w-4 h-4 text-primary" /> Membres de l&apos;établissement
             </h3>
-            {isOwner && (
+            {canGererMembres && (
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="flex items-center gap-2 rounded-md bg-primary-dark text-white px-3 py-2 text-sm font-medium hover:opacity-90"
@@ -195,7 +196,7 @@ export default function ParametresPage() {
             )}
           </div>
 
-          {isOwner && showForm && (
+          {canGererMembres && showForm && (
             <div className="mb-4 rounded-md border border-border bg-muted p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
               <input
                 placeholder="Email"
@@ -249,7 +250,7 @@ export default function ParametresPage() {
                   <th className="py-2 pr-4 font-medium">Email</th>
                   <th className="py-2 pr-4 font-medium">Rôle</th>
                   <th className="py-2 pr-4 font-medium">Statut</th>
-                  {isOwner && <th className="py-2 font-medium">Actions</th>}
+                  {canGererMembres && <th className="py-2 font-medium">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-card-border">
@@ -265,7 +266,7 @@ export default function ParametresPage() {
                     </td>
                     <td className="py-2 pr-4 text-gray-600">{m.email}</td>
                     <td className="py-2 pr-4">
-                      {isOwner ? (
+                      {canGererMembres ? (
                         <select
                           value={m.role}
                           onChange={(e) => changerRole.mutate({ id: m.membership_id, role: e.target.value })}
@@ -274,14 +275,14 @@ export default function ParametresPage() {
                           {ROLE_OPTIONS.map((r) => (
                             <option key={r.value} value={r.value}>{r.label}</option>
                           ))}
-                          {m.role === "owner" && <option value="owner">Propriétaire</option>}
+                          {m.role === "owner" && <option value="owner">Administrateur</option>}
                         </select>
                       ) : (
                         ROLE_LABELS[m.role] ?? m.role
                       )}
                     </td>
                     <td className="py-2 pr-4">
-                      {isOwner ? (
+                      {canGererMembres ? (
                         <button
                           onClick={() => changerRole.mutate({ id: m.membership_id, is_active: !m.is_active })}
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -304,7 +305,7 @@ export default function ParametresPage() {
                         </span>
                       )}
                     </td>
-                    {isOwner && (
+                    {canGererMembres && (
                       <td className="py-2">
                         <button
                           onClick={() => {

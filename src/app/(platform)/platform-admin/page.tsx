@@ -157,7 +157,7 @@ export default function PlatformAdminDashboard() {
                   <div>
                     <p className="text-sm font-semibold">Onboarder un nouvel établissement</p>
                     <p className="text-xs text-muted-foreground">
-                      Créer l&apos;école, le propriétaire et prendre l&apos;abonnement
+                      Créer l&apos;école, l&apos;administrateur et prendre l&apos;abonnement
                     </p>
                   </div>
                 </Link>

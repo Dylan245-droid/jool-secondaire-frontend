@@ -75,6 +75,9 @@ interface Reference {
     niveau: string | null;
     trimestre: string | null;
   }[];
+  membres?: {
+    services: { code: string; label: string; postes: { code: string; label: string }[] }[];
+  };
 }
 
 const TYPES = [
@@ -120,6 +123,12 @@ const TYPES = [
     label: "7. Paiements",
     desc: "Encaissements : montant, mode, frais/échéance, payeur (téléphone ou nom)",
     colonnes: "classe, matricule, montant, mode, reference, frais, echeance, payeur",
+  },
+  {
+    code: "membres",
+    label: "8. Personnel (admin + enseignants)",
+    desc: "Création des comptes du personnel (rôle adm ou tch), affectation service/poste pour l'admin",
+    colonnes: "nom, prenom, email, telephone, role, service, poste",
   },
 ];
 
@@ -258,6 +267,27 @@ function AideRemplissage({ type, donnees }: { type: string; donnees: Reference }
           <code className="font-mono">Scolarité — 1er Trimestre</code>), visible
           dans Finances. Laissez frais/échéance vides pour un versement libre
           (signalé dans le rapport).
+        </p>
+      </div>
+    );
+  }
+  if (type === "membres") {
+    const services = (donnees.membres?.services ?? []).map(
+      (s) => `${s.code} — ${s.label}`
+    );
+    const postes = (donnees.membres?.services ?? []).flatMap((s) =>
+      s.postes.map((p) => `${p.code} — ${p.label}`)
+    );
+    return (
+      <div className="grid gap-3 md:grid-cols-2">
+        <Chips titre="Services (colonne service, admin uniquement)" items={services} />
+        <Chips titre="Postes (colonne poste, rattachés au service)" items={postes} />
+        <p className="text-[11px] text-muted-foreground md:col-span-2">
+          Rôles acceptés : <code className="font-mono">adm</code> (administration,
+          ex. admin) ou <code className="font-mono">tch</code> (enseignant, ex.
+          professeur). Service/poste vides pour un enseignant. L&apos;email
+          déjà utilisé par un autre établissement est refusé ; un mot de passe
+          provisoire est généré (réinitialisation recommandée).
         </p>
       </div>
     );

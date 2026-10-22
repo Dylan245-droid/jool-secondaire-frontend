@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles } from "@/lib/roles";
-import { useState, useEffect } from "react";
+import { useRequireCapabilities, useRequireRoles } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
+import { useState } from "react";
 import { Save } from "lucide-react";
 
 interface Classe {
@@ -37,6 +38,9 @@ interface Note {
   type: string;
   valeur: number;
   coefficient: number;
+  date: string;
+  appreciation: string;
+  is_published: boolean;
 }
 
 const TYPES = [
@@ -49,8 +53,11 @@ const TYPES = [
   { value: "devoir_maison", label: "Devoir maison" },
 ];
 
+const typeLabel = (t: string) => TYPES.find((x) => x.value === t)?.label ?? t;
+
 export default function NotesPage() {
   useRequireRoles(["owner", "adm", "tch"]);
+  useRequireCapabilities("pedagogie");
   const qc = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [trimestreId, setTrimestreId] = useState("");
@@ -90,16 +97,8 @@ export default function NotesPage() {
     enabled: !!classeId && !!trimestreId && !!matiereId,
   });
 
-  useEffect(() => {
-    if (!existing) return;
-    const last: Record<number, number> = {};
-    for (const n of existing) {
-      if (!(n.inscription_id in last)) last[n.inscription_id] = n.valeur;
-    }
-    const v: Record<number, string> = {};
-    for (const [id, val] of Object.entries(last)) v[Number(id)] = String(val);
-    setValues(v);
-  }, [existing]);
+  const historique = (inscriptionId: number) =>
+    (existing ?? []).filter((n) => n.inscription_id === inscriptionId);
 
   const save = useMutation({
     mutationFn: () =>
@@ -109,15 +108,23 @@ export default function NotesPage() {
         matiere_id: Number(matiereId),
         type,
         date,
-        notes: (inscriptions ?? []).map((i) => ({
-          inscription_id: i.id,
-          valeur: values[i.id] !== undefined && values[i.id] !== "" ? Number(values[i.id]) : 0,
-          coefficient: 1,
-        })),
+        notes: (inscriptions ?? [])
+          .filter((i) => values[i.id] !== undefined && values[i.id] !== "")
+          .map((i) => ({
+            inscription_id: i.id,
+            valeur: Number(values[i.id]),
+            coefficient: 1,
+          })),
       }),
-    onSuccess: () => {
-      setMsg("Notes enregistrées.");
+    onSuccess: (data) => {
+      const nb = data?.length ?? 0;
+      setMsg(
+        nb
+          ? `${nb} note(s) ajoutée(s) pour ${(inscriptions ?? []).filter((i) => values[i.id] !== undefined && values[i.id] !== "").length} élève(s).`
+          : "Aucune note à enregistrer : saisissez une note pour au moins un élève."
+      );
       setError("");
+      setValues({});
       qc.invalidateQueries({ queryKey: ["notes"] });
     },
     onError: (err) => {
@@ -135,7 +142,9 @@ export default function NotesPage() {
         <header className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Notes</h2>
           <p className="text-sm text-muted-foreground">
-            Saisie grille des notes par classe, matière et type d&apos;évaluation
+            Ajout de notes par classe, matière et type d&apos;évaluation — chaque
+            sauvegarde ajoute une note aux élèves saisis (l&apos;historique est affiché
+            sous chaque élève)
           </p>
         </header>
 
@@ -232,7 +241,25 @@ export default function NotesPage() {
                 {inscriptions?.map((i) => (
                   <tr key={i.id} className="border-t border-card-border">
                     <td className="py-2 px-4">
-                      {i.etudiant_nom} {i.etudiant_prenom}
+                      <p>
+                        {i.etudiant_nom} {i.etudiant_prenom}
+                      </p>
+                      {historique(i.id).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {historique(i.id)
+                            .slice()
+                            .reverse()
+                            .map((n) => (
+                              <span
+                                key={n.id}
+                                className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] text-gray-600"
+                                title={fmtDate(n.date)}
+                              >
+                                {typeLabel(n.type)} : {n.valeur.toLocaleString("fr-FR")}/20
+                              </span>
+                            ))}
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 px-4">
                       <input
@@ -241,11 +268,11 @@ export default function NotesPage() {
                         max={20}
                         step={0.25}
                         value={values[i.id] ?? ""}
-                        placeholder="—"
+                        placeholder="Nouvelle note"
                         onChange={(e) =>
                           setValues((v) => ({ ...v, [i.id]: e.target.value }))
                         }
-                        className="w-24 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                        className="w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
                       />
                     </td>
                   </tr>
@@ -258,11 +285,15 @@ export default function NotesPage() {
         {classeId && trimestreId && matiereId && inscriptions?.length ? (
           <button
             onClick={() => save.mutate()}
-            disabled={save.isPending || !!trimestre?.notes_cloturees}
+            disabled={
+              save.isPending ||
+              !!trimestre?.notes_cloturees ||
+              !Object.values(values).some((v) => v !== undefined && v !== "")
+            }
             className="mt-6 flex items-center gap-2 rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-dark disabled:opacity-40"
           >
             <Save className="w-4 h-4" />
-            {save.isPending ? "Enregistrement…" : "Enregistrer les notes"}
+            {save.isPending ? "Enregistrement…" : "Ajouter les notes"}
           </button>
         ) : null}
       </main>

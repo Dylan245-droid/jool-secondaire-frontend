@@ -42,7 +42,7 @@ const config: Config = {
         border: "var(--border)",
       },
       fontFamily: {
-        sans: ["'Space Grotesk'", "system-ui", "sans-serif"],
+        sans: ["'Google Sans Flex'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       boxShadow: {

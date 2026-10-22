@@ -23,6 +23,9 @@ interface StructureUsage {
   trial_end_date: string | null;
   trial_days_left: number | null;
   trial_expired: boolean;
+  sub_expired: boolean;
+  subscription_grace_end: string | null;
+  read_only: boolean;
   enrollment_blocked: boolean;
   message: string;
 }
@@ -50,6 +53,8 @@ interface StructureDetail {
     start_date: string;
     end_date: string | null;
     is_active: boolean;
+    plan_reclassement: string | null;
+    billing_cycle_reclassement: string | null;
     is_current: boolean;
   }>;
   current_subscription: {
@@ -62,6 +67,8 @@ interface StructureDetail {
     end_date: string | null;
     is_active: boolean;
     expired: boolean;
+    plan_reclassement: string | null;
+    billing_cycle_reclassement: string | null;
   } | null;
   usage: StructureUsage;
 }
@@ -96,10 +103,11 @@ const STATUS_LABELS: Record<string, { label: string; variant: "success" | "warni
   warning: { label: "Effectif élevé", variant: "warning" },
   over_limit: { label: "Seuil atteint", variant: "destructive" },
   no_plan: { label: "Sans plan", variant: "secondary" },
+  expired: { label: "Abonnement terminé", variant: "destructive" },
 };
 
 const ROLE_LABELS: Record<string, string> = {
-  owner: "Propriétaire",
+  owner: "Administrateur",
   adm: "Administration",
   tch: "Professeur",
   prt: "Parent",
@@ -133,6 +141,8 @@ export default function StructureDetailPage() {
   const [paymentRef, setPaymentRef] = useState("");
   const [convMethod, setConvMethod] = useState("CASH");
   const [convRef, setConvRef] = useState("");
+  const [renewMethod, setRenewMethod] = useState("CASH");
+  const [renewRef, setRenewRef] = useState("");
   const [msg, setMsg] = useState("");
 
   const activateSub = useMutation({
@@ -172,6 +182,42 @@ export default function StructureDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platform-structure", id] });
       setMsg("Essai prolongé de 7 jours.");
+    },
+    onError: (e) => setMsg(e instanceof ApiError ? e.message : "Erreur"),
+  });
+
+  const renewSub = useMutation({
+    mutationFn: (subId: number) =>
+      api.post<{ message?: string }>(`/platform/subscriptions/${subId}/renew`, {
+        payment_method: renewMethod,
+        payment_reference: renewRef,
+        send_email: true,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["platform-structure", id] });
+      setMsg(typeof res?.message === "string" ? res.message : "Abonnement renouvelé.");
+    },
+    onError: (e) => setMsg(e instanceof ApiError ? e.message : "Erreur"),
+  });
+
+  const reclasserSub = useMutation({
+    mutationFn: ({ subId, planId: pId, billingCycle }: { subId: number; planId: number; billingCycle: string }) =>
+      api.post<{ message?: string }>(`/platform/subscriptions/${subId}/reclasser`, {
+        plan_id: pId,
+        billing_cycle: billingCycle,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["platform-structure", id] });
+      setMsg(typeof res?.message === "string" ? res.message : "Reclassement programmé.");
+    },
+    onError: (e) => setMsg(e instanceof ApiError ? e.message : "Erreur"),
+  });
+
+  const cancelReclassement = useMutation({
+    mutationFn: (subId: number) => api.delete(`/platform/subscriptions/${subId}/reclassement`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platform-structure", id] });
+      setMsg("Reclassement annulé.");
     },
     onError: (e) => setMsg(e instanceof ApiError ? e.message : "Erreur"),
   });
@@ -225,7 +271,7 @@ export default function StructureDetailPage() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Propriétaire</CardTitle>
+              <CardTitle>Administrateur</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-1">
               {structure.owner ? (
@@ -237,7 +283,7 @@ export default function StructureDetailPage() {
                   <p className="text-muted-foreground">{structure.owner.phone || "—"}</p>
                 </>
               ) : (
-                <p className="text-muted-foreground">Aucun propriétaire rattaché.</p>
+                <p className="text-muted-foreground">Aucun administrateur rattaché.</p>
               )}
             </CardContent>
           </Card>
@@ -271,6 +317,13 @@ export default function StructureDetailPage() {
                 <CardTitle>Effectif & plan</CardTitle>
                 <div className="flex items-center gap-2">
                   {usage?.trial_expired && <Badge variant="destructive">Essai expiré</Badge>}
+                  {usage?.sub_expired && <Badge variant="destructive">Abonnement terminé</Badge>}
+                  {usage?.read_only && <Badge variant="destructive">Lecture seule</Badge>}
+                  {usage?.subscription_grace_end && !usage.read_only && (
+                    <Badge variant="warning">
+                      Grâce jusqu&apos;au {new Date(usage.subscription_grace_end).toLocaleDateString("fr-FR")}
+                    </Badge>
+                  )}
                   {usage?.trial_days_left != null && (
                     <Badge variant={usage.trial_days_left < 3 ? "destructive" : "warning"}>
                       Essai — {usage.trial_days_left} j
@@ -357,6 +410,26 @@ export default function StructureDetailPage() {
                       ? new Date(structure.current_subscription.end_date).toLocaleDateString("fr-FR")
                       : "illimitée"}
                   </p>
+                  {structure.current_subscription.plan_reclassement && (
+                    <div className="flex items-center justify-between rounded border-2 border-primary/30 bg-primary/5 px-3 py-2">
+                      <p className="text-xs font-medium">
+                        Reclassement prévu : {structure.current_subscription.plan_reclassement}
+                        {structure.current_subscription.billing_cycle_reclassement
+                          ? ` (${CYCLE_LABELS[structure.current_subscription.billing_cycle_reclassement] ?? structure.current_subscription.billing_cycle_reclassement})`
+                          : ""}{" "}
+                        — s&apos;appliquera au prochain renouvellement
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-rose hover:bg-rose/10 hover:text-rose"
+                        onClick={() => cancelReclassement.mutate(structure.current_subscription!.id)}
+                        disabled={cancelReclassement.isPending}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  )}
                   {(usage?.trial_days_left != null || usage?.trial_expired) && (
                     <div className="pt-2">
                       <p className="text-xs text-muted-foreground mb-2">
@@ -383,14 +456,14 @@ export default function StructureDetailPage() {
                         ). La facture et le reçu seront générés et envoyés immédiatement.
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        <select className="jool-input w-auto" value={convMethod} onChange={(e) => setConvMethod(e.target.value)}>
+                        <select className="w-auto rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={convMethod} onChange={(e) => setConvMethod(e.target.value)}>
                           <option value="CASH">Espèces</option>
                           <option value="MOBILE_MONEY">Mobile Money</option>
                           <option value="BANK_TRANSFER">Virement bancaire</option>
                           <option value="CHEQUE">Chèque</option>
                         </select>
                         <input
-                          className="jool-input w-48"
+                          className="w-48 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="Référence de paiement"
                           value={convRef}
                           onChange={(e) => setConvRef(e.target.value)}
@@ -405,7 +478,36 @@ export default function StructureDetailPage() {
                     </div>
                   )}
                   {structure.current_subscription.is_active && (
-                    <div className="pt-2">
+                    <div className="pt-3 border-t border-card-border space-y-3">
+                      {!structure.current_subscription.plan_is_free && (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            Renouvellement manuel : crée la période suivante ({" "}
+                            {CYCLE_LABELS[structure.current_subscription.billing_cycle] ?? structure.current_subscription.billing_cycle}
+                            ), facture et reçu générés et envoyés. Un reclassement programmé est appliqué à ce moment.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <select className="w-auto rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={renewMethod} onChange={(e) => setRenewMethod(e.target.value)}>
+                              <option value="CASH">Espèces</option>
+                              <option value="MOBILE_MONEY">Mobile Money</option>
+                              <option value="BANK_TRANSFER">Virement bancaire</option>
+                              <option value="CHEQUE">Chèque</option>
+                            </select>
+                            <input
+                              className="w-48 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Référence de paiement"
+                              value={renewRef}
+                              onChange={(e) => setRenewRef(e.target.value)}
+                            />
+                            <Button
+                              onClick={() => renewSub.mutate(structure.current_subscription!.id)}
+                              disabled={renewSub.isPending}
+                            >
+                              {renewSub.isPending ? "Renouvellement…" : "Renouveler (facturation)"}
+                            </Button>
+                          </div>
+                        </>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -432,13 +534,14 @@ export default function StructureDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                Crée un nouvel abonnement (activation immédiate) qui remplace l&apos;abonnement courant —
-                pour un passage à un plan supérieur, un changement de cycle ou un rattrapage après essai.
+                <strong>Reclasser (surclassement / déclassement)</strong> : programme le nouveau plan et cycle à la
+                prochaine échéance — le tarif courant ne change pas, aucun avoir. Pour un changement immédiat,
+                utilisez « Créer & activer » ci-dessous.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="jool-label">Plan</label>
-                  <select className="jool-input" value={planId} onChange={(e) => setPlanId(e.target.value)}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+                  <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={planId} onChange={(e) => setPlanId(e.target.value)}>
                     <option value="">Choisir…</option>
                     {(plans ?? []).map((p) => (
                       <option key={p.id} value={String(p.id)}>
@@ -447,51 +550,66 @@ export default function StructureDetailPage() {
                     ))}
                   </select>
                 </div>
-                {!selectedPlan?.is_free && (
-                  <>
-                    <div>
-                      <label className="jool-label">Cycle</label>
-                      <select className="jool-input" value={cycle} onChange={(e) => setCycle(e.target.value)}>
-                        {Object.entries(CYCLE_LABELS).map(([value, label]) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="jool-label">Mode de paiement</label>
-                      <select className="jool-input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                        <option value="CASH">Espèces</option>
-                        <option value="MOBILE_MONEY">Mobile Money</option>
-                        <option value="BANK_TRANSFER">Virement bancaire</option>
-                        <option value="CHEQUE">Chèque</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="jool-label">Référence</label>
-                      <input className="jool-input" value={paymentRef} onChange={(e) => setPaymentRef(e.target.value)} />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Cycle</label>
+                  <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={cycle} onChange={(e) => setCycle(e.target.value)}>
+                    {Object.entries(CYCLE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  disabled={!planId || !structure.current_subscription || reclasserSub.isPending}
+                  onClick={() =>
+                    reclasserSub.mutate({
+                      subId: structure.current_subscription!.id,
+                      planId: Number(planId),
+                      billingCycle: cycle,
+                    })
+                  }
+                >
+                  {reclasserSub.isPending ? "Programmation…" : "Programmer le reclassement"}
+                </Button>
+                <Button
+                  disabled={!planId || createSub.isPending}
+                  onClick={() =>
+                    createSub.mutate({
+                      plan_id: Number(planId),
+                      billing_cycle: cycle,
+                      payment_method: paymentMethod,
+                      payment_reference: paymentRef,
+                      send_email: true,
+                    })
+                  }
+                >
+                  {createSub.isPending ? "Création…" : "Créer & activer (immédiat)"}
+                </Button>
+              </div>
+              {!selectedPlan?.is_free && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Mode de paiement</label>
+                    <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                      <option value="CASH">Espèces</option>
+                      <option value="MOBILE_MONEY">Mobile Money</option>
+                      <option value="BANK_TRANSFER">Virement bancaire</option>
+                      <option value="CHEQUE">Chèque</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Référence</label>
+                    <input className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" value={paymentRef} onChange={(e) => setPaymentRef(e.target.value)} />
+                  </div>
+                </div>
+              )}
               {selectedPlan?.is_free && (
                 <p className="text-sm text-emerald-700 bg-emerald-50 border-2 border-emerald-300 rounded px-3 py-2">
                   Plan gratuit : activation immédiate, aucune facture.
                 </p>
               )}
-              <Button
-                disabled={!planId || createSub.isPending}
-                onClick={() =>
-                  createSub.mutate({
-                    plan_id: Number(planId),
-                    billing_cycle: cycle,
-                    payment_method: paymentMethod,
-                    payment_reference: paymentRef,
-                    send_email: true,
-                  })
-                }
-              >
-                {createSub.isPending ? "Création…" : "Créer & activer l'abonnement"}
-              </Button>
             </CardContent>
           </Card>
 

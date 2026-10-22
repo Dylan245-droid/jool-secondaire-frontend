@@ -229,7 +229,7 @@ const FAQ = [
 
 function daysUntilRentree(): number {
   const now = new Date();
-  const rentree = new Date(now.getFullYear(), 8, 15);
+  const rentree = new Date(now.getFullYear(), 7, 31);
   if (rentree.getTime() < now.getTime()) return 0;
   return Math.max(0, Math.ceil((rentree.getTime() - now.getTime()) / 86400000));
 }
@@ -258,7 +258,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="jool-landing min-h-screen bg-background">
       {/* ─── Header ─── */}
       <header
         className={`sticky top-0 z-50 bg-background/90 backdrop-blur border-b-4 border-black transition-all duration-200 ${scrolled ? "shadow-lg" : ""}`}
@@ -286,7 +286,8 @@ export default function LandingPage() {
       {daysLeft > 0 && (
         <div className="bg-noir text-white">
           <p className="max-w-6xl mx-auto px-6 py-1.5 text-center text-xs md:text-sm font-semibold">
-            Rentrée 2026-2027 dans {daysLeft} jour{daysLeft > 1 ? "s" : ""} — installation et import des données offerts avant le 15 septembre.
+            Rentrée administrative 2026-2027 dans {daysLeft} jour{daysLeft > 1 ? "s" : ""} (31 août) — installation
+            et import des données offerts cette rentrée. Rentrée des classes : le 6 septembre.
           </p>
         </div>
       )}
@@ -521,18 +522,12 @@ export default function LandingPage() {
                     })}
                   </ul>
 
-                  <a
-                    href={`https://wa.me/24166659851?text=${encodeURIComponent(
-                      plan.is_free
-                        ? `Bonjour Jool Secondaire ! Je souhaite créer mon établissement avec le plan ${plan.name} (gratuit). Comment procéder ?`
-                        : `Bonjour Jool Secondaire ! Je suis intéressé par le plan ${plan.name}. Comment démarrer l'essai gratuit de 14 jours ?`
-                    )}`}
-                    target="_blank"
-                    rel="noopener"
+                  <Link
+                    href={`/creer-mon-etablissement?plan=${plan.id}`}
                     className={`jool-btn mt-5 w-full ${plan.is_recommended ? "jool-btn-rose" : ""}`}
                   >
                     {plan.is_free ? "Créer mon établissement" : "Essai gratuit 14 jours"}
-                  </a>
+                  </Link>
                 </div>
               );
             })}

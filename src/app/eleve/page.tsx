@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api, API_BASE } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
 import { useRequireRoles } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
 import {
   Award, BookOpen, FileDown, FileText, GraduationCap, UserX, Wallet,
 } from "lucide-react";
@@ -273,7 +274,7 @@ export default function ElevePage() {
                       <li key={s.id} className="py-2 text-sm">
                         <p>
                           <span className="font-medium">{s.type}</span>
-                          <span className="text-muted-foreground"> le {s.date_sanction}</span>
+                          <span className="text-muted-foreground"> le {fmtDate(s.date_sanction)}</span>
                           {s.levee && (
                             <span className="ml-2 text-xs rounded-full bg-green-100 text-green-800 px-2 py-0.5">
                               levée

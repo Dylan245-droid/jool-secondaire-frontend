@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles, useSessionUser } from "@/lib/roles";
+import { useRequireCapabilities, useRequireRoles, useSessionUser } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
 import {
   CalendarDays, BookOpen, Layers, GraduationCap, DoorOpen, UserCheck, Clock,
   FileText, Trash2, Check, Pencil, Lock,
@@ -182,6 +183,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function OrganisationPage() {
   useRequireRoles(["owner", "adm", "tch"]);
+  useRequireCapabilities("pedagogie");
   const user = useSessionUser();
   const canWrite = user?.role === "owner" || user?.role === "adm";
   const [tab, setTab] = useState<TabId>("annee");
@@ -231,6 +233,7 @@ export default function OrganisationPage() {
 
 function TabNiveaux() {
   const { data: niveaux } = useQuery({ queryKey: ["niveaux"], queryFn: () => api.get<Niveau[]>("/secondaire/niveaux") });
+  const { data: matieres } = useQuery({ queryKey: ["org", "matieres"], queryFn: () => api.get<Matiere[]>("/secondaire/matieres") });
   const college = niveaux?.filter((n) => n.type_etablissement === "college");
   const lycee = niveaux?.filter((n) => n.type_etablissement === "lycee");
   const [coefsNiveauId, setCoefsNiveauId] = useState<number | null>(null);
@@ -264,7 +267,7 @@ function TabNiveaux() {
     const surcharges = Object.entries(coefsEdit)
       .filter(([mid, v]) => {
         const national = coefsData.find((c) => String(c.matiere_id) === mid)?.coefficient_national;
-        return national !== undefined && Number(v) !== national;
+        return national === undefined || Number(v) !== national;
       })
       .map(([mid, v]) => ({ matiere_id: Number(mid), coefficient: Number(v) || 1 }));
     try {
@@ -278,6 +281,9 @@ function TabNiveaux() {
       setCoefsMsg(e instanceof ApiError ? e.message : "Erreur enregistrement coefs");
     }
   }
+
+  const matieresAjoutables = matieres?.filter(
+    (m) => !coefsData.some((c) => c.matiere_id === m.id)) ?? [];
 
   function Bloc({ title, items }: { title: string; items?: Niveau[] }) {
     return (
@@ -302,9 +308,18 @@ function TabNiveaux() {
                     {n.age_min && n.age_max ? `${n.age_min} – ${n.age_max} ans` : "—"}
                   </td>
                   <td className="py-2 text-right">
-                    <button onClick={() => openCoefs(n)} className={btnGhost}>
-                      {coefsNiveauId === n.id ? "Fermer coefs" : "Coefs"}
-                    </button>
+                    {n.type_etablissement === "college" ? (
+                      <button onClick={() => openCoefs(n)} className={btnGhost}>
+                        {coefsNiveauId === n.id ? "Fermer coefs" : "Coefs"}
+                      </button>
+                    ) : (
+                      <span
+                        className="text-xs text-muted-foreground"
+                        title="Les coefficients du lycée se gèrent dans l'onglet Séries"
+                      >
+                        via séries
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -314,47 +329,6 @@ function TabNiveaux() {
             </tbody>
           </table>
         </div>
-        {coefsNiveauId !== null && coefsData.length > 0 && (
-          <div className="mt-3 bg-muted rounded-lg border border-border p-3">
-            <h4 className="text-sm font-semibold mb-2">Parcours-type — surcharge locale (établissement)</h4>
-            {coefsLoading ? (
-              <p className="text-sm text-muted-foreground">Chargement…</p>
-            ) : (
-              <>
-                <table className="w-full text-sm mb-2">
-                  <thead>
-                    <tr className="text-left text-xs text-muted-foreground border-b border-border">
-                      <th className="py-1">Matière</th>
-                      <th>National</th>
-                      <th>Effectif local</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-card-border">
-                    {coefsData.map((c) => (
-                      <tr key={c.matiere_id}>
-                        <td className="py-1">{c.matiere_label}</td>
-                        <td className="py-1">{c.coefficient_national}</td>
-                        <td className="py-1">
-                          <input
-                            type="number"
-                            step="0.5"
-                            value={coefsEdit[String(c.matiere_id)] ?? ""}
-                            onChange={(e) => setCoefsEdit({ ...coefsEdit, [String(c.matiere_id)]: e.target.value })}
-                            className="w-16 rounded-md border border-gray-300 px-2 py-1 text-xs"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {coefsMsg && <p className={`text-xs mb-2 ${coefsMsg.startsWith("Surcharges") ? "text-green-700" : "text-red-600"}`}>{coefsMsg}</p>}
-                <button onClick={saveCoefs} className={btnPrimary}>
-                  Enregistrer les surcharges
-                </button>
-              </>
-            )}
-          </div>
-        )}
       </div>
     );
   }
@@ -370,6 +344,89 @@ function TabNiveaux() {
         <Bloc title="Collège" items={college} />
         <Bloc title="Lycée" items={lycee} />
       </div>
+      {coefsNiveauId !== null && (
+        <div className="mt-3 bg-muted rounded-lg border border-border p-3">
+          <h4 className="text-sm font-semibold mb-2">Parcours-type — surcharge locale (établissement)</h4>
+          {coefsLoading ? (
+            <p className="text-sm text-muted-foreground">Chargement…</p>
+          ) : coefsData.length > 0 ? (
+            <>
+              <table className="w-full text-sm mb-2">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                    <th className="py-1">Matière</th>
+                    <th>National</th>
+                    <th>Effectif local</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-card-border">
+                  {coefsData.map((c) => (
+                    <tr key={c.matiere_id}>
+                      <td className="py-1">{c.matiere_label}</td>
+                      <td className="py-1">{c.coefficient_national ?? "—"}</td>
+                      <td className="py-1">
+                        <input
+                          type="number"
+                          step="0.5"
+                          value={coefsEdit[String(c.matiere_id)] ?? ""}
+                          onChange={(e) => setCoefsEdit({ ...coefsEdit, [String(c.matiere_id)]: e.target.value })}
+                          className="w-16 rounded-md border border-gray-300 px-2 py-1 text-xs"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-3 border-t border-border pt-3">
+                <p className="text-xs font-semibold mb-2">
+                  Ajouter une matière au niveau (surcharge locale)
+                </p>
+                {matieresAjoutables.length > 0 ? (
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {matieresAjoutables.map((m) => (
+                      <label key={m.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={coefsEdit[String(m.id)] !== undefined}
+                          onChange={(e) => {
+                            const next = { ...coefsEdit };
+                            if (e.target.checked) next[String(m.id)] = String(m.coefficient_defaut);
+                            else delete next[String(m.id)];
+                            setCoefsEdit(next);
+                          }}
+                        />
+                        <span className="flex-1">{m.label}</span>
+                        {coefsEdit[String(m.id)] !== undefined && (
+                          <input
+                            type="number"
+                            step="0.5"
+                            value={coefsEdit[String(m.id)]}
+                            onChange={(e) => setCoefsEdit({ ...coefsEdit, [String(m.id)]: e.target.value })}
+                            className="w-16 rounded-md border border-gray-300 px-2 py-1 text-xs"
+                            placeholder="Coef."
+                          />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Toutes les matières sont déjà dans la grille de ce niveau.
+                  </p>
+                )}
+              </div>
+              {coefsMsg && <p className={`text-xs mb-2 ${coefsMsg.startsWith("Surcharges") ? "text-green-700" : "text-red-600"}`}>{coefsMsg}</p>}
+              <button onClick={saveCoefs} className={btnPrimary}>
+                Enregistrer les surcharges
+              </button>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Aucun parcours-type national pour ce niveau — les coefficients se gèrent via l&apos;onglet Séries.
+            </p>
+          )}
+        </div>
+      )}
     </Section>
   );
 }
@@ -472,8 +529,8 @@ function TabAnnee({ canWrite }: { canWrite: boolean }) {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground pl-8">
-                  Admin {y.admin_start_date} · Rentrée {y.school_start_date}
-                  {y.end_date ? ` · Fin ${y.end_date}` : ""}
+                  Admin {fmtDate(y.admin_start_date)} · Rentrée {fmtDate(y.school_start_date)}
+                  {y.end_date ? ` · Fin ${fmtDate(y.end_date)}` : ""}
                 </p>
                 {selected === y.id && (
                   <div className="mt-3 pl-8 space-y-2">
@@ -891,7 +948,7 @@ function TabSeries({ canWrite }: { canWrite: boolean }) {
     const surcharges = Object.entries(coefsEdit)
       .filter(([mid, v]) => {
         const national = coefsData.find((c) => String(c.matiere_id) === mid)?.coefficient_national;
-        return national !== undefined && Number(v) !== national;
+        return national === undefined || Number(v) !== national;
       })
       .map(([mid, v]) => ({ matiere_id: Number(mid), coefficient: Number(v) || 1 }));
     try {
@@ -962,12 +1019,12 @@ function TabSeries({ canWrite }: { canWrite: boolean }) {
                         <input
                           type="checkbox"
                           checked={editCoefs[String(m.id)] !== undefined}
-                          onChange={(e) => {
-                            const next = { ...editCoefs };
-                            if (e.target.checked) next[String(m.id)] = "1";
-                            else delete next[String(m.id)];
-                            setEditCoefs(next);
-                          }}
+                    onChange={(e) => {
+                      const next = { ...editCoefs };
+                      if (e.target.checked) next[String(m.id)] = String(m.coefficient_defaut);
+                      else delete next[String(m.id)];
+                      setEditCoefs(next);
+                    }}
                         />
                         <span className="flex-1">{m.label}</span>
                         {editCoefs[String(m.id)] !== undefined && (
@@ -1010,7 +1067,7 @@ function TabSeries({ canWrite }: { canWrite: boolean }) {
                           {coefsData.map((c) => (
                             <tr key={c.matiere_id}>
                               <td className="py-1">{c.matiere_label}</td>
-                              <td className="py-1">{c.coefficient_national}</td>
+                              <td className="py-1">{c.coefficient_national ?? "—"}</td>
                               <td className="py-1">
                                 <input
                                   type="number"
@@ -1024,6 +1081,48 @@ function TabSeries({ canWrite }: { canWrite: boolean }) {
                           ))}
                         </tbody>
                       </table>
+                      <div className="mt-3 border-t border-border pt-3">
+                        <p className="text-xs font-semibold mb-2">
+                          Ajouter une matière à la série (surcharge locale)
+                        </p>
+                        {matieres && matieres.filter(
+                          (m) => !coefsData.some((c) => c.matiere_id === m.id),
+                        ).length > 0 ? (
+                          <div className="space-y-1 max-h-40 overflow-y-auto">
+                            {matieres.filter(
+                              (m) => !coefsData.some((c) => c.matiere_id === m.id),
+                            ).map((m) => (
+                              <label key={m.id} className="flex items-center gap-2 text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={coefsEdit[String(m.id)] !== undefined}
+                                  onChange={(e) => {
+                                    const next = { ...coefsEdit };
+                                    if (e.target.checked) next[String(m.id)] = String(m.coefficient_defaut);
+                                    else delete next[String(m.id)];
+                                    setCoefsEdit(next);
+                                  }}
+                                />
+                                <span className="flex-1">{m.label}</span>
+                                {coefsEdit[String(m.id)] !== undefined && (
+                                  <input
+                                    type="number"
+                                    step="0.5"
+                                    value={coefsEdit[String(m.id)]}
+                                    onChange={(e) => setCoefsEdit({ ...coefsEdit, [String(m.id)]: e.target.value })}
+                                    className="w-16 rounded-md border border-gray-300 px-2 py-1 text-xs"
+                                    placeholder="Coef."
+                                  />
+                                )}
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            Toutes les matières sont déjà dans la grille de cette série.
+                          </p>
+                        )}
+                      </div>
                       {coefsMsg && <p className={`text-xs mb-2 ${coefsMsg.startsWith("Surcharges") ? "text-green-700" : "text-red-600"}`}>{coefsMsg}</p>}
                       {canWrite && (
                         <button onClick={saveCoefs} className={btnPrimary}>
@@ -1069,7 +1168,7 @@ function TabSeries({ canWrite }: { canWrite: boolean }) {
                     checked={form.coefs[String(m.id)] !== undefined}
                     onChange={(e) => {
                       const next = { ...form.coefs };
-                      if (e.target.checked) next[String(m.id)] = "1";
+                      if (e.target.checked) next[String(m.id)] = String(m.coefficient_defaut);
                       else delete next[String(m.id)];
                       setForm({ ...form, coefs: next });
                     }}

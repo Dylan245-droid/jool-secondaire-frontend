@@ -20,6 +20,9 @@ interface StructureUsage {
   trial_end_date: string | null;
   trial_days_left: number | null;
   trial_expired: boolean;
+  sub_expired: boolean;
+  subscription_grace_end: string | null;
+  read_only: boolean;
   enrollment_blocked: boolean;
   message: string;
 }
@@ -34,6 +37,7 @@ interface StructureItem {
   plan_name: string | null;
   billing_cycle: string | null;
   subscription_status: string;
+  from_self_service: boolean;
   end_date: string | null;
   students_count: number;
   usage: StructureUsage;
@@ -103,12 +107,26 @@ export default function StructuresListPage() {
                           {s.usage?.plan_is_free && (
                             <Badge variant="success" className="ml-2">Gratuit</Badge>
                           )}
+                          {s.from_self_service && (
+                            <Badge variant="warning" className="ml-2">Self-service — à convertir</Badge>
+                          )}
                           {s.usage?.trial_expired && (
                             <Badge variant="destructive" className="ml-2">Essai expiré</Badge>
                           )}
                           {s.usage?.trial_days_left != null && (
                             <Badge variant={s.usage.trial_days_left < 3 ? "destructive" : "warning"} className="ml-2">
                               Essai — {s.usage.trial_days_left} j
+                            </Badge>
+                          )}
+                          {s.usage?.sub_expired && (
+                            <Badge variant="destructive" className="ml-2">Abonnement terminé</Badge>
+                          )}
+                          {s.usage?.read_only && (
+                            <Badge variant="destructive" className="ml-2">Lecture seule</Badge>
+                          )}
+                          {s.usage?.subscription_grace_end && !s.usage.read_only && (
+                            <Badge variant="warning" className="ml-2">
+                              Grâce jusqu&apos;au {new Date(s.usage.subscription_grace_end).toLocaleDateString("fr-FR")}
                             </Badge>
                           )}
                               </p>

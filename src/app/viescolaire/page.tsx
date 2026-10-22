@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles } from "@/lib/roles";
+import { hasModule, useRequireCapabilitiesRead, useRequireRoles } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
 import { AlertTriangle, BookOpen, Check, UserX } from "lucide-react";
 
 interface Classe {
@@ -91,7 +92,10 @@ const TYPES_SANCTION = [
 ];
 
 export default function VieScolairePage() {
-  useRequireRoles(["owner", "adm", "tch"]);
+  const user = useRequireRoles(["owner", "adm", "tch"]);
+  useRequireCapabilitiesRead("viescolaire");
+  // Lecture seule pour un adm configuré sans le droit d'écriture (ex. HSA).
+  const canWrite = user ? (user.role === "adm" ? hasModule(user, "viescolaire") : true) : false;
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"absences" | "sanctions" | "cahier">("absences");
   const [selectedClasse, setSelectedClasse] = useState<number | null>(null);
@@ -206,7 +210,14 @@ export default function VieScolairePage() {
       <SidebarNav />
       <main className="flex-1 h-screen overflow-y-auto p-8 bg-muted">
         <header className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Vie scolaire</h2>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            Vie scolaire
+            {!canWrite && (
+              <span className="text-xs font-medium rounded-full bg-amber-100 text-amber-800 px-2 py-0.5">
+                Lecture seule
+              </span>
+            )}
+          </h2>
           <p className="text-sm text-muted-foreground">Absences, retards, sanctions et cahier de textes</p>
         </header>
 
@@ -246,6 +257,7 @@ export default function VieScolairePage() {
 
         {selectedClasse && tab === "absences" && (
           <div className="space-y-6">
+            {canWrite && (
             <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <UserX className="w-4 h-4 text-red-500" /> Signaler absences / retards
@@ -304,6 +316,7 @@ export default function VieScolairePage() {
                 ))}
               </ul>
             </section>
+            )}
 
             <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4">Assiduité de la classe</h3>
@@ -352,7 +365,7 @@ export default function VieScolairePage() {
                       <span className="font-medium">
                         {a.eleve_nom} {a.eleve_prenom}
                       </span>{" "}
-                      — {TYPES_ABSENCE.find((t) => t.value === a.type)?.label ?? a.type} du {a.date}
+                      — {TYPES_ABSENCE.find((t) => t.value === a.type)?.label ?? a.type} du {fmtDate(a.date)}
                       {a.matiere && <span className="text-muted-foreground"> ({a.matiere})</span>}
                     </span>
                     <span className="flex items-center gap-2 text-xs">
@@ -385,6 +398,7 @@ export default function VieScolairePage() {
 
         {selectedClasse && tab === "sanctions" && (
           <div className="space-y-6">
+            {canWrite && (
             <section className="bg-card rounded-lg border border-card-border shadow-card p-5 max-w-xl">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" /> Prononcer une sanction (direction)
@@ -448,6 +462,7 @@ export default function VieScolairePage() {
                 </button>
               </div>
             </section>
+            )}
 
             <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
               <h3 className="font-semibold mb-4">Sanctions ({sanctions?.length ?? 0})</h3>
@@ -460,21 +475,21 @@ export default function VieScolairePage() {
                           {s.eleve_nom} {s.eleve_prenom}
                         </span>{" "}
                         — {TYPES_SANCTION.find((t) => t.value === s.type)?.label ?? s.type}
-                        <span className="text-muted-foreground"> le {s.date_sanction}</span>
+                        <span className="text-muted-foreground"> le {fmtDate(s.date_sanction)}</span>
                       </p>
                       <p className="text-xs text-muted-foreground">{s.description}</p>
                     </div>
                     <span className="flex items-center gap-2">
                       {s.levee ? (
                         <span className="text-xs rounded-full bg-green-100 text-green-800 px-2 py-0.5">Levée</span>
-                      ) : (
+                      ) : canWrite ? (
                         <button
                           onClick={() => leverSanction.mutate(s.id)}
                           className="text-xs rounded-md border border-gray-300 px-3 py-1 hover:bg-muted"
                         >
                           Lever
                         </button>
-                      )}
+                      ) : null}
                     </span>
                   </li>
                 ))}
@@ -504,7 +519,7 @@ export default function VieScolairePage() {
                     <p className="text-sm font-medium">
                       {s.matiere_label}{" "}
                       <span className="text-muted-foreground font-normal">
-                        — séance n°{s.numero_seance} du {s.date_seance}
+                        — séance n°{s.numero_seance} du {fmtDate(s.date_seance)}
                       </span>
                     </p>
                     <span className="text-xs text-muted-foreground">

@@ -31,10 +31,11 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 async function rawFetch(path: string, options: RequestInit): Promise<Response> {
+  const isForm = options.body instanceof FormData;
   return fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: "include",
-    headers: {
+    headers: isForm ? options.headers : {
       "Content-Type": "application/json",
       ...options.headers,
     },
@@ -68,11 +69,51 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   return res.json()
 }
 
+export async function apiDownload(path: string): Promise<Blob> {
+  const res = await rawFetch(path, {});
+
+  if (res.status === 401 && !SKIP_REFRESH.includes(path)) {
+    const refreshed = await tryRefresh();
+    if (refreshed) return apiDownload(path);
+  }
+
+  if (!res.ok) {
+    let detail = res.statusText
+    try {
+      const body = await res.json()
+      detail = body.detail || body.error || detail
+    } catch {
+      // corps non JSON
+    }
+    throw new ApiError(res.status, typeof detail === "string" ? detail : JSON.stringify(detail))
+  }
+
+  return res.blob()
+}
+
+// Télécharge un fichier (PDF/CSV) et déclenche le téléchargement côté navigateur.
+export async function downloadFile(path: string, filename?: string): Promise<void> {
+  const blob = await apiDownload(path)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename ?? ""
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 export const api = {
   get: <T>(path: string) => apiFetch<T>(path),
   post: <T>(path: string, body?: unknown) =>
     apiFetch<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) =>
     apiFetch<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+  upload: <T>(path: string, formData: FormData) =>
+    apiFetch<T>(path, { method: "POST", body: formData }),
+  download: apiDownload,
 }

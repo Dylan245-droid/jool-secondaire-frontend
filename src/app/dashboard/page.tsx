@@ -8,6 +8,9 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { AlertTriangle, Coins, GraduationCap, TrendingUp, Users } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { DirigeantDashboard } from "@/components/dashboard/DirigeantDashboard";
+import { ServiceDashboard } from "@/components/dashboard/ServiceDashboard";
+import { BoaDashboard } from "@/components/dashboard/BoaDashboard";
 import ParentPage from "@/app/parent/page";
 import ElevePage from "@/app/eleve/page";
 
@@ -70,7 +73,7 @@ const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
 
 export default function DashboardPage() {
   // Page d'accueil par rôle : chaque type d'utilisateur a son tableau de bord.
-  const user = useRequireRoles(["owner", "adm", "tch", "prt", "std"]);
+  const user = useRequireRoles(["owner", "adm", "tch", "boa", "prt", "std"]);
 
   if (!user) {
     return (
@@ -81,6 +84,44 @@ export default function DashboardPage() {
   }
   if (user.role === "prt") return <ParentPage />;
   if (user.role === "std") return <ElevePage />;
+  if (user.role === "boa") {
+    return (
+      <BoaDashboard
+        userName={
+          user?.first_name || user?.last_name
+            ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+            : user?.email ?? ""
+        }
+      />
+    );
+  }
+  if (user.role === "owner" || user.role === "adm") {
+    // Owner, adm non configuré (legacy) ou adm de la direction → dashboard dirigeant ;
+    // un adm affecté à un autre service → dashboard de son service.
+    const caps = user.capabilities ?? [];
+    const isDirection = user.role === "owner" || caps.length === 0 || caps.includes("direction");
+    if (isDirection) {
+      return (
+        <DirigeantDashboard
+          userName={
+            user?.first_name || user?.last_name
+              ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+              : user?.email ?? ""
+          }
+        />
+      );
+    }
+    return (
+      <ServiceDashboard
+        userName={
+          user?.first_name || user?.last_name
+            ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+            : user?.email ?? ""
+        }
+        user={user}
+      />
+    );
+  }
   return <StaffDashboard />;
 }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
+import { fmtDate } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -163,7 +164,7 @@ export default function OnboardStructurePage() {
                 {selectedPlan?.is_free
                   ? " Aucune facture : le plan Découverte est gratuit pour toujours."
                   : sub.activation_mode === "trial"
-                    ? ` Essai gratuit de 14 jours démarré (fin le ${result.data.trial_end_date ?? "—"}) : l'école utilise toute la plateforme, la facturation se fera à la conversion.`
+                    ? ` Essai gratuit de 14 jours démarré (fin le ${fmtDate(result.data.trial_end_date)}) : l'école utilise toute la plateforme, la facturation se fera à la conversion.`
                     : " Facture et reçu envoyés par email."}
               </p>
             </div>
@@ -193,7 +194,7 @@ export default function OnboardStructurePage() {
       <header className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Onboarder un établissement</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Créer l&apos;école, son propriétaire et prendre l&apos;abonnement choisi
+          Créer l&apos;école, son administrateur et prendre l&apos;abonnement choisi
         </p>
       </header>
 
@@ -227,35 +228,35 @@ export default function OnboardStructurePage() {
           {step === 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="jool-label">Prénom *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Prénom *</label>
                 <input
-                  className="jool-input"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   value={founder.first_name}
                   onChange={(e) => setFounder({ ...founder, first_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="jool-label">Nom *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
                 <input
-                  className="jool-input"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   value={founder.last_name}
                   onChange={(e) => setFounder({ ...founder, last_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="jool-label">Email *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
                 <input
                   type="email"
-                  className="jool-input"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   value={founder.email}
                   onChange={(e) => setFounder({ ...founder, email: e.target.value })}
                 />
               </div>
               <div>
-                <label className="jool-label">Téléphone (login) *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone (login) *</label>
                 <input
                   type="tel"
-                  className="jool-input"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="06 00 00 00 00"
                   value={founder.phone}
                   onChange={(e) => setFounder({ ...founder, phone: e.target.value })}
@@ -267,9 +268,9 @@ export default function OnboardStructurePage() {
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <label className="jool-label">Nom de l&apos;établissement *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Nom de l&apos;établissement *</label>
                 <input
-                  className="jool-input"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Collège Saint Exupéry"
                   value={school.name}
                   onChange={(e) => setSchool({ ...school, name: e.target.value })}
@@ -277,9 +278,9 @@ export default function OnboardStructurePage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="jool-label">Sigle (court)</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Sigle (court)</label>
                   <input
-                    className="jool-input"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="CSE"
                     maxLength={10}
                     value={school.short_name}
@@ -287,9 +288,9 @@ export default function OnboardStructurePage() {
                   />
                 </div>
                 <div>
-                  <label className="jool-label">Adresse</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Adresse</label>
                   <input
-                    className="jool-input"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Libreville, Gabon"
                     value={school.address}
                     onChange={(e) => setSchool({ ...school, address: e.target.value })}
@@ -306,7 +307,7 @@ export default function OnboardStructurePage() {
           {step === 2 && (
             <div className="space-y-5">
               <div>
-                <label className="jool-label">Plan d&apos;abonnement</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Plan d&apos;abonnement</label>
                 {loadingPlans ? (
                   <p className="text-sm text-muted-foreground">Chargement des plans…</p>
                 ) : (
@@ -349,7 +350,7 @@ export default function OnboardStructurePage() {
 
               {selectedPlan && (
                 <div>
-                  <label className="jool-label">Inclus</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Inclus</label>
                   <div className="flex flex-wrap gap-2">
                     {selectedPlan.features.map((f) => (
                       <Badge key={f} variant="outline">{f}</Badge>
@@ -360,9 +361,9 @@ export default function OnboardStructurePage() {
 
               {!selectedPlan?.is_free && (
                 <div>
-                  <label className="jool-label">Cycle de facturation</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Cycle de facturation</label>
                   <select
-                    className="jool-input"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     value={sub.billing_cycle}
                     onChange={(e) => setSub({ ...sub, billing_cycle: e.target.value })}
                   >
@@ -375,7 +376,7 @@ export default function OnboardStructurePage() {
 
               {!selectedPlan?.is_free && (
                 <div>
-                  <label className="jool-label">Démarrage de l&apos;abonnement</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Démarrage de l&apos;abonnement</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
@@ -414,9 +415,9 @@ export default function OnboardStructurePage() {
               {!selectedPlan?.is_free && sub.activation_mode === "now" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="jool-label">Mode de paiement</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Mode de paiement</label>
                     <select
-                      className="jool-input"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       value={sub.payment_method}
                       onChange={(e) => setSub({ ...sub, payment_method: e.target.value })}
                     >
@@ -426,9 +427,9 @@ export default function OnboardStructurePage() {
                     </select>
                   </div>
                   <div>
-                    <label className="jool-label">Référence de paiement</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Référence de paiement</label>
                     <input
-                      className="jool-input"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="N° transaction / chèque"
                       value={sub.payment_reference}
                       onChange={(e) => setSub({ ...sub, payment_reference: e.target.value })}

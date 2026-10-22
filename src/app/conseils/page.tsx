@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles } from "@/lib/roles";
+import { useRequireCapabilities, useRequireRoles } from "@/lib/roles";
+import { fmtDate } from "@/lib/utils";
 import { FileText, PenLine, CheckCircle2, Lock, ScrollText } from "lucide-react";
 
 interface Classe {
@@ -57,6 +58,7 @@ const DECISIONS = [
 
 export default function ConseilsPage() {
   useRequireRoles(["owner", "adm"]);
+  useRequireCapabilities("pedagogie");
   const queryClient = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [selected, setSelected] = useState<Conseil | null>(null);
@@ -175,7 +177,7 @@ export default function ConseilsPage() {
                       }`}
                     >
                       <span className="text-sm font-medium">
-                        {c.date} <span className="text-muted-foreground">— {trimestres?.find((t) => t.id === c.trimestre_id)?.label ?? "T?"}</span>
+                        {fmtDate(c.date)} <span className="text-muted-foreground">— {trimestres?.find((t) => t.id === c.trimestre_id)?.label ?? "T?"}</span>
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         c.statut === "valide" ? "bg-green-100 text-green-700"
@@ -197,7 +199,7 @@ export default function ConseilsPage() {
 
           <section className="bg-card rounded-lg border border-card-border shadow-card p-5">
             <h3 className="font-semibold mb-4">
-              {selected ? `Conseil du ${selected.date} — ${STATUTS[selected.statut]}` : "Détail du conseil"}
+              {selected ? `Conseil du ${fmtDate(selected.date)} — ${STATUTS[selected.statut]}` : "Détail du conseil"}
             </h3>
 
             {selected && (

@@ -93,12 +93,6 @@ export function PlatformSidebar() {
       </div>
 
       <div className="p-4 border-t border-white/10 space-y-2">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-        >
-          <Building2 className="w-4 h-4" /> Espace établissement
-        </Link>
         <button
           onClick={logout}
           className="w-full flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-sm text-white/70 hover:bg-rose/20 hover:text-rose transition-colors"

@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles } from "@/lib/roles";
+import { useRequireCapabilities, useRequireRoles } from "@/lib/roles";
 import { useState } from "react";
 import { Calculator, Download, FilePlus2, Send } from "lucide-react";
 
@@ -52,6 +52,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api/v2";
 
 export default function BulletinsPage() {
   useRequireRoles(["owner", "adm"]);
+  useRequireCapabilities("pedagogie");
   const qc = useQueryClient();
   const [classeId, setClasseId] = useState("");
   const [trimestreId, setTrimestreId] = useState("");

@@ -10,7 +10,18 @@ interface MeResponse {
   success: boolean;
   data: {
     account: { id: number; email: string; first_name?: string; last_name?: string; is_superuser?: boolean };
-    memberships: Array<{ role: string; structure: { id: number; name: string }; is_active: boolean }>;
+    capabilities?: string[];
+    memberships: Array<{
+      role: string;
+      structure: { id: number; name: string };
+      is_active: boolean;
+      admin_profile?: {
+        service_code?: string | null;
+        service_label?: string | null;
+        poste_code?: string | null;
+        poste_label?: string | null;
+      } | null;
+    }>;
   };
 }
 
@@ -27,7 +38,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const setUser = useSessionStore((s) => s.setUser);
 
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [identifiant, setIdentifiant] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,11 +48,12 @@ function LoginForm() {
     setError("");
     setLoading(true);
     try {
-      await api.post("/auth/login", { phone_number: phoneNumber, password });
+      await api.post("/auth/login", { phone_number: identifiant, password });
       const me = await api.get<MeResponse>("/auth/me");
       if (!me.data?.account) throw new Error("Profil introuvable");
       const isSuperuser = Boolean(me.data.account.is_superuser);
       const active = me.data.memberships.find((m) => m.is_active) ?? me.data.memberships[0];
+      const profile = active?.admin_profile;
       setUser({
         id: me.data.account.id,
         email: me.data.account.email,
@@ -51,6 +63,15 @@ function LoginForm() {
         structureId: active?.structure.id,
         structureName: active?.structure.name,
         isSuperuser,
+        capabilities: me.data.capabilities ?? [],
+        adminProfile: profile
+          ? {
+              serviceCode: profile.service_code ?? null,
+              serviceLabel: profile.service_label ?? null,
+              posteCode: profile.poste_code ?? null,
+              posteLabel: profile.poste_label ?? null,
+            }
+          : null,
       });
       router.push(isSuperuser ? "/platform-admin" : searchParams.get("next") || "/dashboard");
       router.refresh();
@@ -62,7 +83,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <main className="jool-landing min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -93,15 +114,15 @@ function LoginForm() {
 
           <form onSubmit={submit} className="space-y-5">
             <div>
-              <label className="jool-label">Numéro de téléphone</label>
+              <label className="jool-label">Email ou numéro de téléphone</label>
               <input
-                type="tel"
+                type="text"
                 required
-                inputMode="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                autoComplete="username"
+                value={identifiant}
+                onChange={(e) => setIdentifiant(e.target.value)}
                 className="jool-input"
-                placeholder="06 00 00 00 01"
+                placeholder="email@etablissement.com ou 06 00 00 00 01"
               />
             </div>
             <div>

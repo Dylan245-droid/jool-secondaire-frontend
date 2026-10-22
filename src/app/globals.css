@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -37,8 +37,13 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-family: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+}
+
+/* Pages publiques brutalistes (landing, login) : police de marque conservée */
+.jool-landing {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 ::selection {
@@ -247,4 +252,63 @@ body {
 
 .jool-marquee-track:hover {
   animation-play-state: paused;
+}
+
+/* ════════════════════════════════════════════
+   ANIMATIONS — dashboard dirigeant (vie & mouvement)
+   ════════════════════════════════════════════ */
+
+/* Skeleton shimmer */
+@keyframes jool-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.jool-skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, #e7e5f2 37%, var(--muted) 63%);
+  background-size: 800px 100%;
+  animation: jool-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Barre de progression : pousse depuis la gauche au montage */
+@keyframes jool-bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.jool-bar-grow {
+  transform-origin: left center;
+  animation: jool-bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Point d'alerte : halo pulsant discret */
+@keyframes jool-pulse-soft {
+  0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.35); }
+  70% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+.jool-pulse-soft {
+  animation: jool-pulse-soft 2.2s ease-out infinite;
+}
+
+/* Sparkline : dessin progressif du tracé */
+@keyframes jool-sparkline-draw {
+  from { stroke-dashoffset: var(--jool-dash, 400); }
+  to { stroke-dashoffset: 0; }
+}
+
+.jool-sparkline {
+  stroke-dasharray: var(--jool-dash, 400);
+  animation: jool-sparkline-draw 1.6s ease-out both;
+}
+
+/* Carte : élévation au survol (lift) */
+.jool-card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.jool-card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -8px rgba(76, 29, 149, 0.18);
 }

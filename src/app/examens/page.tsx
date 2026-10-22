@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { SidebarNav } from "@/components/shared/SidebarNav";
-import { useRequireRoles } from "@/lib/roles";
+import { useRequireCapabilities, useRequireRoles } from "@/lib/roles";
 import { FileText, GraduationCap, Plus } from "lucide-react";
 
 interface Examen {
@@ -54,6 +54,7 @@ const RESULTATS = [
 
 export default function ExamensPage() {
   useRequireRoles(["owner", "adm", "tch"]);
+  useRequireCapabilities("pedagogie");
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Examen | null>(null);
   const [showForm, setShowForm] = useState(false);
